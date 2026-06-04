@@ -92,3 +92,247 @@ Admin Button (`.adminBtn`)
 
 
 */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  font-family: Arial, sans-serif;
+}
+
+.wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 16px;
+  padding: 40px;
+  text-align: center;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)),
+    url("../images/admin-dashboard-bg.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+/* Interactive Controls */
+#searchBar {
+  width: 100%;
+  max-width: 520px;
+  padding: 12px 14px;
+  border: 1px solid #b8c9c9;
+  border-radius: 12px;
+  font-size: 15px;
+  color: #173434;
+  background-color: #ffffff;
+  margin-bottom: 10px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#searchBar:hover,
+#searchBar:focus {
+  border-color: #015c5d;
+  box-shadow: 0 0 0 3px rgba(1, 92, 93, 0.18);
+  outline: none;
+}
+
+.filter-section {
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+#timeSortFilter,
+#specialtyFilter {
+  flex: 1;
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid #b8c9c9;
+  border-radius: 12px;
+  background-color: #ffffff;
+  color: #173434;
+  font-size: 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#timeSortFilter:hover,
+#specialtyFilter:hover,
+#timeSortFilter:focus,
+#specialtyFilter:focus {
+  border-color: #015c5d;
+  box-shadow: 0 0 0 3px rgba(1, 92, 93, 0.16);
+  outline: none;
+}
+
+.button,
+.adminBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 12px;
+  background-color: #015c5d;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.button:hover,
+.adminBtn:hover {
+  background-color: #a62b1f;
+  transform: translateY(-1px);
+}
+
+.button:focus-visible,
+.adminBtn:focus-visible {
+  outline: 3px solid rgba(166, 43, 31, 0.22);
+  outline-offset: 2px;
+}
+
+@media (max-width: 768px) {
+  .filter-section {
+    flex-direction: column;
+  }
+
+  #searchBar,
+  .filter-section {
+    max-width: 100%;
+  }
+}
+
+/* Modal */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background-color: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.modal.show {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+#modal-body {
+  width: 100%;
+  max-width: 560px;
+  background-color: #ffffff;
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+  transform: translateY(10px);
+  transition: transform 0.25s ease;
+}
+
+.modal.show #modal-body {
+  transform: translateY(0);
+}
+
+.close {
+  position: absolute;
+  top: 18px;
+  right: 24px;
+  font-size: 28px;
+  line-height: 1;
+  color: #015c5d;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.close:hover {
+  color: #a62b1f;
+}
+
+#modal-body input,
+#modal-body select,
+#modal-body textarea {
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 11px 12px;
+  border: 1px solid #b8c9c9;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #173434;
+  background-color: #ffffff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#modal-body input:focus,
+#modal-body select:focus,
+#modal-body textarea:focus {
+  outline: none;
+  border-color: #015c5d;
+  box-shadow: 0 0 0 3px rgba(1, 92, 93, 0.16);
+}
+
+/* Doctor Cards and Content Area */
+#content {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 8px;
+}
+
+.doctor-card,
+.doctorCard,
+.card {
+  flex: 1 1 280px;
+  max-width: 340px;
+  width: 100%;
+  background-color: #ffffff;
+  border: 1px solid #d9e6e6;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.doctor-card:hover,
+.doctorCard:hover,
+.card:hover {
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+@media (max-width: 768px) {
+  #content {
+    gap: 14px;
+  }
+
+  .doctor-card,
+  .doctorCard,
+  .card {
+    flex-basis: 100%;
+    max-width: 100%;
+  }
+}

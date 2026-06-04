@@ -63,3 +63,209 @@
 
 Let me know if you'd like a consolidated style guide for the entire HospitalCRM frontend.
  */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  font-family: Arial, sans-serif;
+}
+
+.wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 32px;
+}
+
+#searchBar,
+.filter-section,
+#patientTable {
+  width: 100%;
+  max-width: 1100px;
+}
+
+.filter-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: flex-start;
+}
+
+/* Search and Filter Styling */
+#searchBar,
+#datePicker {
+  padding: 10px 12px;
+  border: 1px solid #b7caca;
+  border-radius: 10px;
+  font-size: 14px;
+  background-color: #ffffff;
+}
+
+#searchBar {
+  margin-bottom: 8px;
+}
+
+#todayButton {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 10px;
+  background-color: #015c5d;
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+#todayButton:hover {
+  background-color: #017d7e;
+}
+
+/* Table Styling */
+#patientTable {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #ffffff;
+}
+
+#patientTable thead {
+  background-color: rgba(20, 20, 20, 0.65);
+}
+
+#patientTable th,
+#patientTable td {
+  padding: 12px 16px;
+  text-align: center;
+  border-bottom: 1px solid #d9e4e4;
+}
+
+#patientTable th {
+  color: #ffffff;
+}
+
+#patientTable tbody tr:nth-child(odd) {
+  background-color: #ffffff;
+}
+
+#patientTable tbody tr:nth-child(even) {
+  background-color: #f4f8f8;
+}
+
+#patientTable tbody tr:hover {
+  background-color: #dff0f0;
+}
+
+/* Extras */
+.prescription-btn {
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.prescription-btn:hover {
+  transform: scale(1.1);
+  filter: brightness(1.15);
+}
+
+.prescription-btn:active {
+  transform: scale(0.95);
+}
+
+.noPatientRecord {
+  font-size: 16px;
+  font-style: italic;
+  color: #7a7a7a;
+  text-align: center;
+  padding: 16px 0;
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
+  .main-content {
+    padding: 24px 16px;
+    gap: 14px;
+  }
+
+  #searchBar,
+  .filter-section,
+  #patientTable {
+    max-width: 100%;
+  }
+
+  #patientTable th,
+  #patientTable td {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    padding: 20px 12px;
+    gap: 12px;
+  }
+
+  #searchBar,
+  #datePicker,
+  #todayButton {
+    width: 100%;
+    font-size: 14px;
+  }
+
+  .filter-section {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  #patientTable {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  #patientTable th,
+  #patientTable td {
+    font-size: 13px;
+    padding: 9px 10px;
+  }
+
+  .noPatientRecord {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-content {
+    padding: 16px 10px;
+  }
+
+  #todayButton {
+    padding: 9px 12px;
+  }
+
+  #searchBar,
+  #datePicker {
+    padding: 9px 10px;
+    font-size: 13px;
+  }
+
+  #patientTable th,
+  #patientTable td {
+    font-size: 12px;
+  }
+}
