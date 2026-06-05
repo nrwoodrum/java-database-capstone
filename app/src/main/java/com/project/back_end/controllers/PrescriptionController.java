@@ -1,8 +1,39 @@
 package com.project.back_end.controllers;
 
+import com.project.back_end.models.Prescription;
+import com.project.back_end.services.PrescriptionService;
+import com.project.back_end.services.Service;
+
+import java.util.Map;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@RestController
+@RequestMapping("${api.path}" + "prescription")
 public class PrescriptionController {
-    
-// 1. Set Up the Controller Class:
+	private final PrescriptionService prescriptionService;
+	private final Service service;
+
+	public PrescriptionController(PrescriptionService prescriptionService, Service service) {
+		this.prescriptionService = prescriptionService;
+		this.service = service;
+	}
+
+	@PostMapping("/{token}")
+	public ResponseEntity<Map<String, String>> savePrescription(@RequestBody Prescription prescription,
+			@PathVariable String token) {
+		ResponseEntity<Map<String, String>> validation = service.validateToken(token, "doctor");
+		if (!validation.getStatusCode().is2xxSuccessful()) {
+			return ResponseEntity.status(validation.getStatusCode()).body(validation.getBody());
+		}
+
+		return prescriptionService.savePrescription(prescription);
+	}
 //    - Annotate the class with `@RestController` to define it as a REST API controller.
 //    - Use `@RequestMapping("${api.path}prescription")` to set the base path for all prescription-related endpoints.
 //    - This controller manages creating and retrieving prescriptions tied to appointments.
