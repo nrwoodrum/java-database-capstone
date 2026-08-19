@@ -1,3 +1,87 @@
+import { openModal } from './modals.js';
+import { BASE_API_URL } from './config.js';
+
+const ADMIN_API = `${BASE_API_URL}/api/admin/login`;
+const DOCTOR_API = `${BASE_API_URL}/api/doctor/login`;
+
+window.onload = () => {
+  const adminLoginBtn = document.getElementById('adminLogin');
+  const doctorLoginBtn = document.getElementById('doctorLogin');
+
+  if (adminLoginBtn) {
+    adminLoginBtn.addEventListener('click', () => openModal('adminLogin'));
+  }
+
+  if (doctorLoginBtn) {
+    doctorLoginBtn.addEventListener('click', () => openModal('doctorLogin'));
+  }
+};
+
+window.adminLoginHandler = async function() {
+  const username = document.getElementById('adminUsername').value;
+  const password = document.getElementById('adminPassword').value;
+
+  const admin = { username, password };
+
+  try {
+    const response = await fetch(ADMIN_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(admin)
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      localStorage.setItem('token', data.token);
+      selectRole('admin');
+    } else {
+      alert("Invalid admin credentials. Please try again.");
+    }
+  } catch (error) {
+    console.error("Error during admin login:", error);
+    alert("An error occurred during login. Please try again later.");
+  }
+};
+
+window.doctorLoginHandler = async function() {
+  const email = document.getElementById('doctorEmail').value;
+  const password = document.getElementById('doctorPassword').value;
+
+  const doctor = { email, password };
+
+  try {
+    const response = await fetch(DOCTOR_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(doctor)
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      localStorage.setItem('token', data.token);
+      selectRole('doctor');
+    } else {
+      alert("Invalid doctor credentials. Please try again.");
+    }
+  } catch (error) {
+    console.error("Error during doctor login:", error);
+    alert("An error occurred during login. Please try again later.");
+  }
+};
+
+/*
+  Import the openModal function to handle showing login popups/modals
+  Import the base API URL from the config file
+  Define constants for the admin and doctor login API endpoints using the base URL
+
+  Use the window.onload event to ensure DOM elements are available after page load
+  Inside this function:
+    - Select the "adminLogin" and "doctorLogin" buttons using getElementById
+    - If the admin login button exists:
+        - Add a click event listener that calls openModal('adminLogin') to show the admin login modal
+    - If the doctor login button exists:
+        - Add a click event listener that calls openModal('doctorLogin') to show the doctor login modal
+
 /*
   Import the openModal function to handle showing login popups/modals
   Import the base API URL from the config file

@@ -1,3 +1,89 @@
+import { getDoctors, filterDoctors, saveDoctor } from './doctorService.js';
+import { createDoctorCard } from '../components/doctorCard.js';
+import { openModal } from './modals.js';
+
+document.getElementById('addDoctorBtn').addEventListener('click', () => openModal('addDoctor'));
+
+window.addEventListener('DOMContentLoaded', () => {
+  loadDoctorCards();
+});
+
+async function loadDoctorCards() {
+  try {
+    const doctors = await getDoctors();
+    const contentDiv = document.getElementById('content');
+    contentDiv.innerHTML = ''; // Clear existing content
+    doctors.forEach(doctor => {
+      const card = createDoctorCard(doctor);
+      contentDiv.appendChild(card);
+    });
+  } catch (error) {
+    console.error("Error loading doctor cards:", error);
+  }
+}
+
+document.getElementById('searchBar').addEventListener('input', filterDoctorsOnChange);
+document.getElementById('timeFilter').addEventListener('change', filterDoctorsOnChange);
+document.getElementById('specialtyFilter').addEventListener('change', filterDoctorsOnChange);
+
+async function filterDoctorsOnChange() {
+  const name = document.getElementById('searchBar').value || null;
+  const time = document.getElementById('timeFilter').value || null;
+  const specialty = document.getElementById('specialtyFilter').value || null;
+
+  try {
+    const filteredDoctors = await filterDoctors(name, time, specialty);
+    if (filteredDoctors && filteredDoctors.length > 0) {
+      renderDoctorCards(filteredDoctors);
+    } else {
+      document.getElementById('content').innerHTML = '<p>No doctors found with the given filters.</p>';
+    }
+  } catch (error) {
+    console.error("Error filtering doctors:", error);
+    alert("An error occurred while filtering doctors. Please try again.");
+  }
+}
+
+function renderDoctorCards(doctors) {
+  const contentDiv = document.getElementById('content');
+  contentDiv.innerHTML = ''; // Clear existing content
+  doctors.forEach(doctor => {
+    const card = createDoctorCard(doctor);
+    contentDiv.appendChild(card);
+  });
+}
+
+async function adminAddDoctor() {
+  const name = document.getElementById('doctorName').value;
+  const email = document.getElementById('doctorEmail').value;
+  const phone = document.getElementById('doctorPhone').value;
+  const password = document.getElementById('doctorPassword').value;
+  const specialty = document.getElementById('doctorSpecialty').value;
+  const availableTimes = Array.from(document.querySelectorAll('input[name="availability"]:checked')).map(input => input.value);
+
+  const token = localStorage.getItem("token");
+  if (!token) {
+    alert("Admin token not found. Please log in again.");
+    return;
+  }
+
+  const doctor = { name, email, phone, password, specialty, availableTimes };
+
+  try {
+    const result = await saveDoctor(doctor, token);
+    if (result.success) {
+      alert("Doctor added successfully.");
+      document.getElementById('modal').style.display = 'none';
+      loadDoctorCards(); // Reload the doctor cards
+    } else {
+      alert("Failed to add doctor: " + result.message);
+    }
+  } catch (error) {
+    console.error("Error adding doctor:", error);
+    alert("An error occurred while adding the doctor. Please try again.");
+  }
+}
+
 /*
   This script handles the admin dashboard functionality for managing doctors:
   - Loads all doctor cards

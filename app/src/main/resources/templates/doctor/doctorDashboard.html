@@ -1,3 +1,60 @@
+<!DOCTYPE html>
+
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+
+    <title>Doctor Dashboard</title>
+
+    <link rel="icon" type="image/png" th:href="@{/assets/images/logo/logo.png}" />
+
+    <link rel="stylesheet" type="text/css" th:href="@{/css/adminDashboard.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/doctorDashboard.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}" />
+
+    <script th:src="@{/js/render.js}" defer></script>
+    <script th:src="@{/js/util.js}" defer></script>
+    <script th:src="@{/js/header.js}" defer></script>
+    <script th:src="@{/js/footer.js}" defer></script>
+    <script type="module" th:src="@{/js/doctorDashboard.js}" defer></script>
+</head>
+
+<body onload="renderContent()">
+    <div class="container">
+        <div class="wrapper">
+            <div id="header"></div>
+
+
+
+            <div class="main-content">
+                <input type="text" id="searchBar" class="searchBar" placeholder="Search Bar for custom output" />
+
+                <div class="filter-section">
+                    <button id="todayButton">Today's Appointments</button>
+                    <input type="date" id="datePicker" />
+                </div>
+
+                <table class="patient-table">
+                    <thead>
+                        <tr>
+                            <th>Patient ID</th>
+                            <th>Name</th>
+                            <th>Phone No.</th>
+                            <th>Email</th>
+                            <th>Prescription</th>
+                        </tr>
+                    </thead>
+                    <tbody id="patientTableBody"></tbody>
+                </table>
+            </div>
+
+            <div id="footer"></div>
+        </div>
+    </div>
+</body>
+
+</html>
 <!-- doctorDashboard.html -->
 
 <!-- 
