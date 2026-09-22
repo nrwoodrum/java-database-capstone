@@ -1,6 +1,94 @@
 package com.project.back_end.services;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
+
+import javax.crypto.SecretKey;
+
+import org.springframework.stereotype.Component;
+
+import com.project.back_end.repo.AdminRepository;
+import com.project.back_end.repo.DoctorRepository;
+import com.project.back_end.repo.PatientRepository;
+
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+
+@Component
 public class TokenService {
+    private final AdminRepository adminRepository;
+    private final DoctorRepository doctorRepository;
+    private final PatientRepository patientRepository;
+
+    public TokenService(AdminRepository adminRepository, DoctorRepository doctorRepository, PatientRepository patientRepository) {
+        this.adminRepository = adminRepository;
+        this.doctorRepository = doctorRepository;
+        this.patientRepository = patientRepository;
+    }
+
+public String generateToken(String email, String userType) {
+    String token = Jwts.builder()
+            .setSubject(email)
+            .setIssuedAt(new Date())
+            .setExpiration(new Date(System.currentTimeMillis() + 604800000)) // 7 days
+            .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+            .compact();
+    return token;
+}
+
+public String extractIdentifier(String token) {
+    String email = Jwts.parserBuilder()
+            .setSigningKey(getSigningKey())
+            .build()
+            .parseClaimsJws(token)
+            .getBody()
+            .getSubject();
+    return email;
+}
+
+public String validateToken(String token, String userType) {
+    boolean isValid = false;
+    try {
+        String email = extractIdentifier(token);
+        switch (userType) {
+            case "admin":
+                isValid = adminRepository.findByEmail(email) != null;
+                break;
+            case "doctor":
+                isValid = doctorRepository.findByEmail(email) != null;
+                break;
+            case "patient":
+                isValid = patientRepository.findByEmail(email) != null;
+                break;
+            default:
+                return "Invalid user type";
+        }
+        if (!isValid) {
+            return "User not found for the specified role";
+        }
+    } catch (Exception e) {
+        return "Invalid or expired token";
+    }
+    return null; // Token is valid
+}
+
+public SecretKey getSigningKey() {
+    String secretKey = "your-256-bit-secret"; // Replace with your actual secret key
+    return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
+}
+
+
+
+    // 1. Generate a JWT token for the user based on their email and user type.
+    //    - The token will be used for authentication and authorization in the application.
+    //    - The token should include claims such as the user's email and role (userType).
+    //    - The token should have an expiration time to enhance security.
+    //    - Use a secure signing algorithm (e.g., HMAC SHA-256) to sign the token.
+    //    - Return the generated token as a string.
+
+
+
 // 1. **@Component Annotation**
 // The @Component annotation marks this class as a Spring component, meaning Spring will manage it as a bean within its application context.
 // This allows the class to be injected into other Spring-managed components (like services or controllers) where it's needed.

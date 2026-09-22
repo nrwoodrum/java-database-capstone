@@ -1,6 +1,160 @@
 package com.project.back_end.services;
 
+import org.springframework.transaction.annotation.Transactional;
+
+import com.project.back_end.models.Appointment;
+import com.project.back_end.models.Doctor;
+import com.project.back_end.repo.AppointmentRepository;
+import com.project.back_end.repo.DoctorRepository;
+
+import org.springframework.stereotype.Service;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@Service
 public class DoctorService {
+    private final DoctorRepository doctorRepository;
+    private final AppointmentRepository appointmentRepository;
+    private final TokenService tokenService;
+
+    public DoctorService(DoctorRepository doctorRepository, AppointmentRepository appointmentRepository, TokenService tokenService) {
+        this.doctorRepository = doctorRepository;
+        this.appointmentRepository = appointmentRepository;
+        this.tokenService = tokenService;
+    }
+@Transactional
+    public List<LocalTime> getDoctorAvailability(Long doctorId, LocalDate date) {
+        List<LocalTime> availableTimes = new ArrayList<>();
+        // Assuming doctors are available from 9 AM to 5 PM with 1-hour slots
+        for (int hour = 9; hour < 17; hour++) {
+            availableTimes.add(LocalTime.of(hour, 0));
+        }
+
+        // Fetch appointments for the doctor on the given date
+        LocalDateTime startOfDay = date.atStartOfDay();
+        LocalDateTime endOfDay = date.atTime(23, 59);
+        List<Appointment> appointments = appointmentRepository.findByDoctorIdAndAppointmentTimeBetween(doctorId, startOfDay, endOfDay);
+
+        // Remove booked times from available times
+        for (Appointment appointment : appointments) {
+            availableTimes.remove(appointment.getAppointmentTime().toLocalTime());
+        }
+
+        return availableTimes;
+    }
+
+    public int saveDoctor(Doctor doctor) {
+        if (doctorRepository.findByEmail(doctor.getEmail()) != null) {
+            return -1; // Doctor with the same email already exists
+        }
+        try {
+            doctorRepository.save(doctor);
+            return 1; // Success
+        } catch (Exception e) {
+            return 0; // Internal error
+        }
+    }
+
+    public int updateDoctor(Doctor doctor) {
+        if (doctorRepository.findById(doctor.getId()).isEmpty()) {
+            return -1; // Doctor not found
+        }
+        try {
+            doctorRepository.save(doctor);
+            return 1; // Success
+        } catch (Exception e) {
+            return 0; // Internal error
+        }
+    }
+
+    public List<Doctor> getDoctors() {
+        return doctorRepository.findAll();
+    }
+
+    public int deleteDoctor(Long doctorId) {
+        if (doctorRepository.findById(doctorId).isEmpty()) {
+            return -1; // Doctor not found
+        }
+        try {
+            // Delete all appointments associated with the doctor
+            appointmentRepository.deleteAllByDoctorId(doctorId);
+            // Delete the doctor
+            doctorRepository.deleteById(doctorId);
+            return 1; // Success
+        } catch (Exception e) {
+            return 0; // Internal error
+        }
+    }
+
+    public String validateDoctor(String email, String password) {
+        Doctor doctor = doctorRepository.findByEmail(email);
+        if (doctor == null) {
+            return "Doctor not found";
+        }
+        if (!doctor.getPassword().equals(password)) {
+            return "Invalid password";
+        }
+        // Generate token for the doctor
+        String token = tokenService.generateToken(doctor.getId(), "doctor");
+        return token;
+    }
+
+    public List<Doctor> findDoctorByName(String name) {
+        return doctorRepository.findByNameContainingIgnoreCase(name);
+    }
+
+    public List<Doctor> filterDoctorsByNameSpecialtyAndTime(String name, String specialty, String time) {
+        List<Doctor> doctors = doctorRepository.findByNameContainingIgnoreCaseAndSpecialtyIgnoreCase(name, specialty);
+        return filterDoctorByTime(doctors, time);
+    }
+
+    public List<Doctor> filterDoctorByTime(List<Doctor> doctors, String time) {
+        List<Doctor> filteredDoctors = new ArrayList<>();
+        for (Doctor doctor : doctors) {
+            List<LocalTime> availableTimes = getDoctorAvailability(doctor.getId(), LocalDate.now());
+            if (time.equalsIgnoreCase("AM")) {
+                if (availableTimes.stream().anyMatch(t -> t.isBefore(LocalTime.NOON))) {
+                    filteredDoctors.add(doctor);
+                }
+            } else if (time.equalsIgnoreCase("PM")) {
+                if (availableTimes.stream().anyMatch(t -> t.isAfter(LocalTime.NOON))) {
+                    filteredDoctors.add(doctor);
+                }
+            }
+        }
+        return filteredDoctors;
+    }
+
+    public List<Doctor> filterDoctorByNameAndTime(String name, String time) {
+        List<Doctor> doctors = doctorRepository.findByNameContainingIgnoreCase(name);
+        return filterDoctorByTime(doctors, time);
+    }
+
+    public List<Doctor> filterDoctorByNameAndSpecialty(String name, String specialty) {
+        return doctorRepository.findByNameContainingIgnoreCaseAndSpecialtyIgnoreCase(name, specialty);
+    }
+
+    public List<Doctor> filterDoctorByTimeAndSpecialty(String time, String specialty) {
+        List<Doctor> doctors = doctorRepository.findBySpecialtyIgnoreCase(specialty);
+        return filterDoctorByTime(doctors, time);
+    }
+
+    public List<Doctor> filterDoctorBySpecialty(String specialty) {
+        return doctorRepository.findBySpecialtyIgnoreCase(specialty);
+    }
+
+    @Transactional
+    public List<Doctor> filterDoctorsByTime(String amOrPm) {
+        Map<String, Object> allDoctors = doctorRepository.findAll();
+        return filterDoctorsByTime(allDoctors, amOrPm);
+    }
+
+
 
 // 1. **Add @Service Annotation**:
 //    - This class should be annotated with `@Service` to indicate that it is a service layer class.

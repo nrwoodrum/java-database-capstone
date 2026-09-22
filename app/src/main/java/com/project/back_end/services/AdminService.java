@@ -1,6 +1,115 @@
 package com.project.back_end.services;
 
-public class Service {
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import com.project.back_end.models.Admin;
+import com.project.back_end.models.Appointment;
+import com.project.back_end.repo.AdminRepository;
+import com.project.back_end.repo.DoctorRepository;
+import com.project.back_end.repo.PatientRepository;
+
+@Service
+public class AdminService {
+    private final TokenService tokenService;
+    private final AdminRepository adminRepository;
+    private final DoctorRepository doctorRepository;
+    private final PatientRepository patientRepository;
+    private final DoctorService doctorService;
+    private final PatientService patientService;
+
+    public AdminService(TokenService tokenService, AdminRepository adminRepository, DoctorRepository doctorRepository, PatientRepository patientRepository, DoctorService doctorService, PatientService patientService) {
+        this.tokenService = tokenService;
+        this.adminRepository = adminRepository;
+        this.doctorRepository = doctorRepository;
+        this.patientRepository = patientRepository;
+        this.doctorService = doctorService;
+        this.patientService = patientService;
+    }
+
+public String validateToken(String token, String userType) {
+    String error = tokenService.validateToken(token, userType);
+    if (error != null) {
+        return UnauthorizedResponse("Invalid or expired token");
+    }
+    return null;
+}
+
+public String validateAdmin(String username, String password) {
+    Admin admin = adminRepository.findByUsername(username);
+    if (admin != null) {
+        if (admin.getPassword().equals(password)) {
+            String token = tokenService.generateToken(admin.getUsername(), "admin");
+            return token;
+        } else {
+            return UnauthorizedResponse("Invalid password");
+        }
+    } else {
+        return UnauthorizedResponse("Admin not found");
+    }
+}
+
+public String filterDoctor(String name, String specialty, String amOrPm) {
+    return doctorService.filterDoctors(name, specialty, amOrPm);
+}
+
+public int validateAppointment(Long doctorId, LocalDateTime appointmentTime) {
+    return doctorService.validateAppointment(doctorId, appointmentTime);
+    if (doctor == null) {
+        return -1; // Doctor not found
+        if (availableTimes.contains(appointmentTime.toLocalTime())) {
+            return 1; // Valid appointment time
+        } else {
+            return 0; // Invalid appointment time
+        }
+    }
+}
+
+public boolean validatePatient(String email, String phone) {
+    return patientService.validatePatient(email, phone);
+    if (existingPatient != null) {
+        return false; // Patient already exists
+    } else {
+        return true; // Patient is valid for new registration
+    }
+}
+
+public String validatePatientLogin(String email, String password) {
+    return patientService.validatePatientLogin(email, password);
+    if (patient != null) {
+        if (patient.getPassword().equals(password)) {
+            String token = tokenService.generateToken(patient.getEmail(), "patient");
+            return token;
+        } else {
+            return UnauthorizedResponse("Invalid password");
+        }
+    } else {
+        return UnauthorizedResponse("Patient not found");
+    }
+}
+
+public String filterPatient(String token, String condition, String doctorName) {
+    return patientService.filterPatient(token, condition, doctorName);
+    String email = tokenService.extractEmailFromToken(token);
+    if (email == null) {
+        return UnauthorizedResponse("Invalid token");
+    }
+    List<Appointment> appointments;
+    if (condition != null && doctorName != null) {
+        appointments = patientService.filterAppointmentsByConditionAndDoctor(email, condition, doctorName);
+    } else if (condition != null) {
+        appointments = patientService.filterAppointmentsByCondition(email, condition);
+    } else if (doctorName != null) {
+        appointments = patientService.filterAppointmentsByDoctor(email, doctorName);
+    } else {
+        appointments = patientService.getAllAppointments(email);
+    }
+    return appointments;
+}
+
+
 // 1. **@Service Annotation**
 // The @Service annotation marks this class as a service component in Spring. This allows Spring to automatically detect it through component scanning
 // and manage its lifecycle, enabling it to be injected into controllers or other services using @Autowired or constructor injection.

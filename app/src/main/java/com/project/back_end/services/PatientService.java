@@ -1,6 +1,149 @@
 package com.project.back_end.services;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+
+import com.project.back_end.DTO.AppointmentDTO;
+import com.project.back_end.models.Appointment;
+import com.project.back_end.models.Patient;
+import com.project.back_end.repo.AppointmentRepository;
+import com.project.back_end.repo.PatientRepository;
+
+import jakarta.transaction.Transactional;
+
+@Service
 public class PatientService {
+    private final PatientRepository patientRepository;
+    private final AppointmentRepository appointmentRepository;
+    private final TokenService tokenService;
+
+    public PatientService(PatientRepository patientRepository, AppointmentRepository appointmentRepository, TokenService tokenService) {
+        this.patientRepository = patientRepository;
+        this.appointmentRepository = appointmentRepository;
+        this.tokenService = tokenService;
+    }
+
+    public int createPatient(Patient patient) {
+        try {
+            patientRepository.save(patient);
+            return 1; // Success
+        } catch (Exception e) {
+            // Log the error
+            System.err.println("Error creating patient: " + e.getMessage());
+            return 0; // Failure
+        }
+    }
+@Transactional
+    public List<AppointmentDTO> getPatientAppointments(Long patientId, String token) {
+        // Validate the token
+        if (!tokenService.validateToken(token)) {
+            throw new IllegalArgumentException("Invalid token");
+        }
+
+        List<Appointment> appointments = appointmentRepository.findByPatientId(patientId);
+        return appointments.stream()
+                .map(appointment -> new AppointmentDTO(
+                        appointment.getId(),
+                        appointment.getDoctor().getId(),
+                        appointment.getDoctor().getName(),
+                        appointment.getPatient().getId(),
+                        appointment.getPatient().getName(),
+                        appointment.getPatient().getEmail(),
+                        appointment.getPatient().getPhone(),
+                        appointment.getPatient().getAddress(),
+                        appointment.getAppointmentTime(),
+                        appointment.getStatus()
+                ))
+                .collect(Collectors.toList());
+    }
+
+    public List<AppointmentDTO> filterByCondition(Long patientId, String condition) {
+        List<Appointment> appointments;
+        if ("past".equalsIgnoreCase(condition)) {
+            appointments = appointmentRepository.findByPatient_IdAndStatusOrderByAppointmentTimeAsc(patientId, 1);
+        } else if ("future".equalsIgnoreCase(condition)) {
+            appointments = appointmentRepository.findByPatient_IdAndStatusOrderByAppointmentTimeAsc(patientId, 0);
+        } else {
+            throw new IllegalArgumentException("Invalid condition: " + condition);
+        }
+
+        return appointments.stream()
+                .map(appointment -> new AppointmentDTO(
+                        appointment.getId(),
+                        appointment.getDoctor().getId(),
+                        appointment.getDoctor().getName(),
+                        appointment.getPatient().getId(),
+                        appointment.getPatient().getName(),
+                        appointment.getPatient().getEmail(),
+                        appointment.getPatient().getPhone(),
+                        appointment.getPatient().getAddress(),
+                        appointment.getAppointmentTime(),
+                        appointment.getStatus()
+                ))
+                .collect(Collectors.toList());
+    }
+
+    public List<AppointmentDTO> filterByDoctor(Long patientId, String doctorName) {
+        List<Appointment> appointments = appointmentRepository.filterByDoctorNameAndPatientId(doctorName, patientId);
+        return appointments.stream()
+                .map(appointment -> new AppointmentDTO(
+                        appointment.getId(),
+                        appointment.getDoctor().getId(),
+                        appointment.getDoctor().getName(),
+                        appointment.getPatient().getId(),
+                        appointment.getPatient().getName(),
+                        appointment.getPatient().getEmail(),
+                        appointment.getPatient().getPhone(),
+                        appointment.getPatient().getAddress(),
+                        appointment.getAppointmentTime(),
+                        appointment.getStatus()
+                ))
+                .collect(Collectors.toList());
+    }
+
+    public List<AppointmentDTO> filterByDoctorAndCondition(Long patientId, String doctorName, String condition) {
+        List<Appointment> appointments;
+        if ("past".equalsIgnoreCase(condition)) {
+            appointments = appointmentRepository.filterByDoctorNameAndPatientIdAndStatus(doctorName, patientId, 1);
+        } else if ("future".equalsIgnoreCase(condition)) {
+            appointments = appointmentRepository.filterByDoctorNameAndPatientIdAndStatus(doctorName, patientId, 0);
+        } else {
+            throw new IllegalArgumentException("Invalid condition: " + condition);
+        }
+
+        return appointments.stream()
+                .map(appointment -> new AppointmentDTO(
+                        appointment.getId(),
+                        appointment.getDoctor().getId(),
+                        appointment.getDoctor().getName(),
+                        appointment.getPatient().getId(),
+                        appointment.getPatient().getName(),
+                        appointment.getPatient().getEmail(),
+                        appointment.getPatient().getPhone(),
+                        appointment.getPatient().getAddress(),
+                        appointment.getAppointmentTime(),
+                        appointment.getStatus()
+                ))
+                .collect(Collectors.toList());
+    }
+
+    public Patient getPatientDetails(String token) {
+        // Extract the email from the token
+        String email = tokenService.extractEmail(token);
+        if (email == null) {
+            throw new IllegalArgumentException("Invalid token");
+        }
+
+        // Fetch the patient details using the email
+        Patient patient = patientRepository.findByEmail(email);
+        if (patient == null) {
+            throw new IllegalArgumentException("Patient not found");
+        }
+
+        return patient;
+    }
 // 1. **Add @Service Annotation**:
 //    - The `@Service` annotation is used to mark this class as a Spring service component. 
 //    - It will be managed by Spring's container and used for business logic related to patients and appointments.

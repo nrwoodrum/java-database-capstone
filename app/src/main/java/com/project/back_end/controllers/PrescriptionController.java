@@ -1,6 +1,68 @@
 package com.project.back_end.controllers;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.project.back_end.models.Prescription;
+import com.project.back_end.services.AdminService;
+import com.project.back_end.services.AppointmentService;
+import com.project.back_end.services.PrescriptionService;
+
+import jakarta.validation.Valid;
+
+@RestController
+@RequestMapping("${api.path}prescription")
 public class PrescriptionController {
+
+    @Autowired
+    private final PrescriptionService prescriptionService;
+    private final AdminService service;
+    private final AppointmentService appointmentService;
+
+    public PrescriptionController(PrescriptionService prescriptionService, AdminService service, AppointmentService appointmentService) {
+        this.prescriptionService = prescriptionService;
+        this.service = service;
+        this.appointmentService = appointmentService;
+    }
+
+    @PostMapping("/save/{token}")
+    public ResponseEntity<?> savePrescription(@RequestBody @Valid Prescription prescription, @PathVariable String token) {
+        String error = service.validateToken(token, "doctor");
+        if (error == null) {
+            // Update the appointment status to reflect that a prescription has been added
+            appointmentService.updateAppointmentStatus(prescription.getAppointment().getId(), "Prescription Added");
+            int result = prescriptionService.savePrescription(prescription);
+            if (result == 1) {
+                return ResponseEntity.ok("Prescription saved successfully");
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to save prescription");
+            }
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+        }
+    }
+
+    @GetMapping("/get/{appointmentId}/{token}")
+    public ResponseEntity<?> getPrescription(@PathVariable Long appointmentId, @PathVariable String token) {
+        String error = service.validateToken(token, "doctor");
+        if (error == null) {
+            Prescription prescription = prescriptionService.getPrescriptionByAppointmentId(appointmentId);
+            if (prescription != null) {
+                return ResponseEntity.ok(prescription);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Prescription not found for the given appointment ID");
+            }
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+        }
+    }
     
 // 1. Set Up the Controller Class:
 //    - Annotate the class with `@RestController` to define it as a REST API controller.

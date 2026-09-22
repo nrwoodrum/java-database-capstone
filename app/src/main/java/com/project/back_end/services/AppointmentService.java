@@ -1,6 +1,109 @@
 package com.project.back_end.services;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.List;
+import org.springframework.stereotype.Service;
+import com.project.back_end.models.Appointment;
+import com.project.back_end.repo.AppointmentRepository;
+import com.project.back_end.repo.DoctorRepository;
+import com.project.back_end.repo.PatientRepository;
+import jakarta.transaction.Transactional;
 
+@Service
 public class AppointmentService {
+
+    private final AppointmentRepository appointmentRepository;
+    private final Service service;
+    private final TokenService tokenService;
+    private final PatientRepository patientRepository;
+    private final DoctorRepository doctorRepository;
+
+    public AppointmentService(AppointmentRepository appointmentRepository, Service service, TokenService tokenService, PatientRepository patientRepository, DoctorRepository doctorRepository) {
+        this.appointmentRepository = appointmentRepository;
+        this.service = service;
+        this.tokenService = tokenService;
+        this.patientRepository = patientRepository;
+        this.doctorRepository = doctorRepository;
+    }
+
+    @Transactional
+    public int bookAppointment(Appointment appointment) {
+        try {
+            appointmentRepository.save(appointment);
+            return 1; // Success
+        } catch (Exception e) {
+            return 0; // Failure
+        }
+    }
+
+    @Transactional
+    public String updateAppointment(Long appointmentId, Appointment updatedAppointment, Long patientId) {
+        Appointment existingAppointment = appointmentRepository.findById(appointmentId).orElse(null);
+        if (existingAppointment == null) {
+            return "Appointment not found";
+        }
+        if (!existingAppointment.getPatient().getId().equals(patientId)) {
+            return "Patient ID mismatch";
+        }
+        if (existingAppointment.getStatus() != 0) {
+            return "Cannot update an appointment that is not in pending status";
+        }
+        // Check if the doctor is available at the new appointment time
+        List<Appointment> doctorAppointments = appointmentRepository.findByDoctorIdAndAppointmentTimeBetween(
+                updatedAppointment.getDoctor().getId(),
+                updatedAppointment.getAppointmentTime().minusHours(1),
+                updatedAppointment.getAppointmentTime().plusHours(1)
+        );
+        if (!doctorAppointments.isEmpty()) {
+            return "Doctor is not available at the specified time";
+        }
+        // Update the appointment
+        existingAppointment.setAppointmentTime(updatedAppointment.getAppointmentTime());
+        existingAppointment.setDoctor(updatedAppointment.getDoctor());
+        appointmentRepository.save(existingAppointment);
+        return "Appointment updated successfully";
+    }
+
+    @Transactional
+    public String cancelAppointment(Long appointmentId, Long patientId) {
+        Appointment existingAppointment = appointmentRepository.findById(appointmentId).orElse(null);
+        if (existingAppointment == null) {
+            return "Appointment not found";
+        }
+        if (!existingAppointment.getPatient().getId().equals(patientId)) {
+            return "Patient ID mismatch";
+        }
+        try {
+            appointmentRepository.delete(existingAppointment);
+            return "Appointment canceled successfully";
+        } catch (Exception e) {
+            return "Error occurred while canceling the appointment";
+        }
+    }
+
+    @Transactional
+    public List<Appointment> getAppointments(Long doctorId, LocalDate date, String patientName) {
+        LocalDateTime startOfDay = date.atStartOfDay();
+        LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
+        if (patientName == null || patientName.isEmpty()) {
+            return appointmentRepository.findByDoctorIdAndAppointmentTimeBetween(doctorId, startOfDay, endOfDay);
+        } else {
+            return appointmentRepository.findByDoctorIdAndPatient_NameContainingIgnoreCaseAndAppointmentTimeBetween(
+                    doctorId, patientName, startOfDay, endOfDay);
+        }
+    }
+
+    @Transactional
+    public String changeStatus(Long appointmentId, int status) {
+        Appointment existingAppointment = appointmentRepository.findById(appointmentId).orElse(null);
+        if (existingAppointment == null) {
+            return "Appointment not found";
+        }
+        existingAppointment.setStatus(status);
+        appointmentRepository.save(existingAppointment);
+        return "Appointment status updated successfully";
+    }
 // 1. **Add @Service Annotation**:
 //    - To indicate that this class is a service layer class for handling business logic.
 //    - The `@Service` annotation should be added before the class declaration to mark it as a Spring service component.
