@@ -1,9 +1,7 @@
 package com.project.back_end.controllers;
 
-import java.util.List;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.project.back_end.DTO.Login;
-import com.project.back_end.models.Appointment;
 import com.project.back_end.models.Patient;
 import com.project.back_end.services.AdminService;
 import com.project.back_end.services.PatientService;
@@ -24,69 +21,79 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/patient")
 public class PatientController {
-    
-    @Autowired
-    private final PatientService patientService;
-    private final AdminService service;
 
-    public PatientController(PatientService patientService, AdminService service) {
+    private final PatientService patientService;
+    private final AdminService adminservice;
+
+    public PatientController(PatientService patientService, AdminService adminservice) {
         this.patientService = patientService;
-        this.service = service;
+        this.adminservice = adminservice;
     }
 
     @GetMapping("/{token}")
-    public ResponseEntity<?> getPatient(@PathVariable String token) {
-        String error = service.validateToken(token, "patient");
-        if (error == null) {
-            Patient patient = patientService.getPatientDetails(token);
-            return ResponseEntity.ok(patient);
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    public ResponseEntity<?> getPatientDetails(@PathVariable String token) {
+        if (!adminservice.validateToken(token, "patient")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
         }
-    }
 
-    @PostMapping("/create")
+        ResponseEntity<Map<String, Object>> patient = patientService.getPatientDetails(token);
+        if (patient == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Patient not found");
+        }
+
+        return ResponseEntity.ok(patient);
+    }
+@PostMapping
     public ResponseEntity<?> createPatient(@RequestBody @Valid Patient patient) {
-        String error = service.validatePatient(patient);
-        if (error == null) {
-            int result = patientService.createPatient(patient);
-            if (result == 1) {
-                return ResponseEntity.ok("Patient created successfully");
-            } else {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to create patient");
-            }
+        if (adminservice.validatePatient(patient)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Patient already exists");
+        }
+
+        int result = patientService.createPatient(patient);
+
+if (result == 1) {
+    return ResponseEntity.status(HttpStatus.CREATED).body("Signup successful");
+} else if (result == 0) {
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error creating patient");
+} else {
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error occurred");
+}
+    }
+@PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody Login login) {
+        ResponseEntity<Map<String, String>> response = adminservice.validatePatientLogin(login.getEmail(), login.getPassword());
+        if (response.getStatusCode() == HttpStatus.OK) {
+            return ResponseEntity.ok(response.getBody());
         } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response.getBody());
         }
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody @Valid Login login) {
-        Map<String, String> response = service.validatePatientLogin(login);
-        return ResponseEntity.ok(response);
+    @GetMapping("/appointments/{patientId}/{token}/{user}")
+public ResponseEntity<?> getPatientAppointment(@PathVariable Long patientId,
+                                              @PathVariable String token,
+                                              @PathVariable String user) {
+    if (!adminservice.validateToken(token, user)) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
     }
 
-    @GetMapping("/{id}/{token}")
-    public ResponseEntity<?> getPatientAppointment(@PathVariable Long id, @PathVariable String token) {
-        String error = service.validateToken(token, "patient");
-        if (error == null) {
-            List<Appointment> appointments = patientService.getPatientAppointments(id);
-            return ResponseEntity.ok(appointments);
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
-        }
-    }
+    ResponseEntity<Map<String, Object>> response =
+            patientService.getPatientAppointment(patientId, token);
 
-    @GetMapping("/filter/{condition}/{name}/{token}")
+    return ResponseEntity.ok(response.getBody());
+}
+    @GetMapping("/appointments/filter/{condition}/{name}/{token}")
     public ResponseEntity<?> filterPatientAppointment(@PathVariable String condition, @PathVariable String name, @PathVariable String token) {
-        String error = service.validateToken(token, "patient");
-        if (error == null) {
-            List<Appointment> filteredAppointments = service.filterPatient(token, condition, name);
-            return ResponseEntity.ok(filteredAppointments);
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+        if (!adminservice.validateToken(token, "patient")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
         }
+
+        ResponseEntity<Map<String,Object>> filteredAppointments = adminservice.filterPatient(token, condition, name);
+        return ResponseEntity.ok(filteredAppointments);
     }
+
+
+
 
 // 1. Set Up the Controller Class:
 //    - Annotate the class with `@RestController` to define it as a REST API controller for patient-related operations.
@@ -134,5 +141,3 @@ public class PatientController {
 
 
 }
-
-

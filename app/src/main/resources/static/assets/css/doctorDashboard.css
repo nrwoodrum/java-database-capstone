@@ -16,18 +16,152 @@ html, body { height: 100%; font-family: Arial, sans-serif; }
 
 .main-content {
   flex-grow: 1;
-  padding: 40px;
+  padding: 40px 24px 50px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   text-align: center;
+  gap: 16px;
 
-  background-image: url("index.png");
+  background-image: url("../images/defineRole/index.png");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   background-attachment: fixed;
+}
+
+.searchBar,
+select,
+input[type="date"],
+button {
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid #d8e2e2;
+  margin: 8px 0;
+  font-size: 16px;
+  transition: all 0.2s ease;
+}
+
+.searchBar,
+select,
+input[type="date"] {
+  background-color: #fff;
+  color: #1f2d2a;
+  width: min(100%, 420px);
+}
+
+button {
+  background-color: #015c5d;
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  min-width: 180px;
+}
+
+button:hover {
+  background-color: #017d7e;
+}
+
+.filter-section {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 16px;
+  width: min(100%, 980px);
+  margin: 8px auto 18px;
+}
+
+.summary-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 18px 20px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(19, 58, 59, 0.12);
+  border-radius: 14px;
+  box-shadow: 0 8px 18px rgba(1, 32, 33, 0.08);
+}
+
+.summary-card span {
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #517275;
+}
+
+.summary-card strong {
+  font-size: 2rem;
+  line-height: 1.1;
+  color: #0f3b3b;
+}
+
+.empty-state {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 72px;
+  padding: 20px;
+  margin: 12px auto 0;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px dashed rgba(19, 58, 59, 0.22);
+  color: #335b5c;
+  font-weight: 600;
+  text-align: center;
+}
+
+.patient-table {
+  width: min(100%, 980px);
+  border-collapse: collapse;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(1, 32, 33, 0.08);
+}
+
+.patient-table th,
+.patient-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid #e9ecef;
+  text-align: left;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 92px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.status-badge.completed {
+  background: rgba(22, 163, 74, 0.12);
+  color: #166534;
+}
+
+.status-badge.pending {
+  background: rgba(245, 158, 11, 0.14);
+  color: #92400e;
+}
+
+.patient-table thead {
+  background: rgba(1, 92, 93, 0.08);
 }
 
 table {

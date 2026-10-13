@@ -14,17 +14,21 @@ import jakarta.transaction.Transactional;
 public class AppointmentService {
 
     private final AppointmentRepository appointmentRepository;
-    private final Service service;
-    private final TokenService tokenService;
-    private final PatientRepository patientRepository;
+    @SuppressWarnings("unused")
     private final DoctorRepository doctorRepository;
+    @SuppressWarnings("unused")
+    private final PatientRepository patientRepository;
+    @SuppressWarnings("unused")
+    private final TokenService tokenService;
 
-    public AppointmentService(AppointmentRepository appointmentRepository, Service service, TokenService tokenService, PatientRepository patientRepository, DoctorRepository doctorRepository) {
+
+    public AppointmentService(AppointmentRepository appointmentRepository,
+                              DoctorRepository doctorRepository,
+                              PatientRepository patientRepository, TokenService tokenService) {
         this.appointmentRepository = appointmentRepository;
-        this.service = service;
-        this.tokenService = tokenService;
-        this.patientRepository = patientRepository;
         this.doctorRepository = doctorRepository;
+        this.patientRepository = patientRepository;
+        this.tokenService = tokenService;
     }
 
     @Transactional
@@ -86,11 +90,14 @@ public class AppointmentService {
     public List<Appointment> getAppointments(Long doctorId, LocalDate date, String patientName) {
         LocalDateTime startOfDay = date.atStartOfDay();
         LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
-        if (patientName == null || patientName.isEmpty()) {
+        String normalizedName = patientName == null || patientName.isBlank() || "all".equalsIgnoreCase(patientName)
+                || "null".equalsIgnoreCase(patientName) ? null : patientName.trim();
+
+        if (normalizedName == null) {
             return appointmentRepository.findByDoctorIdAndAppointmentTimeBetween(doctorId, startOfDay, endOfDay);
         } else {
             return appointmentRepository.findByDoctorIdAndPatient_NameContainingIgnoreCaseAndAppointmentTimeBetween(
-                    doctorId, patientName, startOfDay, endOfDay);
+                    doctorId, normalizedName, startOfDay, endOfDay);
         }
     }
 

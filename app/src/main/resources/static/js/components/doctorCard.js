@@ -1,6 +1,5 @@
-import { overlay } from './loggedPatient.js';
 import { deleteDoctor } from '../services/doctorServices.js';
-import { fetchPatientDetails } from '../services/patientServices.js';
+import { getPatientData } from '../services/patientServices.js';
 
 export function createDoctorCard(doctor) {
   const card = document.createElement('div');
@@ -8,44 +7,42 @@ export function createDoctorCard(doctor) {
 
   const role = localStorage.getItem("userRole");
 
-  const doctorInfo = document.createElement('div');
-  doctorInfo.className = 'doctor-info';
+  const infoDiv = document.createElement('div');
+  infoDiv.className = 'doctor-info';
 
   const name = document.createElement('h3');
   name.textContent = doctor.name;
 
   const specialization = document.createElement('p');
-  specialization.textContent = `Specialization: ${doctor.specialization}`;
+  specialization.textContent = `Specialization: ${doctor.specialty || doctor.specialization || 'Not specified'}`;
 
   const email = document.createElement('p');
   email.textContent = `Email: ${doctor.email}`;
 
-  const availableTimes = document.createElement('ul');
-  availableTimes.textContent = 'Available Times:';
-  doctor.availableTimes.forEach(time => {
-    const timeItem = document.createElement('li');
-    timeItem.textContent = time;
-    availableTimes.appendChild(timeItem);
-  });
+  const availability = document.createElement('p');
+  const availableTimes = Array.isArray(doctor.availableTimes) ? doctor.availableTimes : [];
+  availability.textContent = `Available Times: ${availableTimes.join(", ") || 'Not available'}`;
 
-  doctorInfo.appendChild(name);
-  doctorInfo.appendChild(specialization);
-  doctorInfo.appendChild(email);
-  doctorInfo.appendChild(availableTimes);
+  infoDiv.appendChild(name);
+  infoDiv.appendChild(specialization);
+  infoDiv.appendChild(email);
+  infoDiv.appendChild(availability);
 
-  const actions = document.createElement('div');
-  actions.className = 'card-actions';
+  const actionsDiv = document.createElement('div');
+  actionsDiv.className = 'card-actions';
 
   if (role === 'admin') {
-    const deleteBtn = document.createElement('button');
-    deleteBtn.textContent = 'Delete';
-    deleteBtn.className = 'delete-btn';
-    deleteBtn.addEventListener('click', async () => {
+    const removeBtn = document.createElement('button');
+    removeBtn.textContent = 'Delete';
+    removeBtn.className = 'delete-btn';
+
+    removeBtn.addEventListener('click', async () => {
       const token = localStorage.getItem("token");
       if (!token) {
         alert("Admin token not found. Please log in again.");
         return;
       }
+
       try {
         const result = await deleteDoctor(doctor.id, token);
         if (result.success) {
@@ -59,38 +56,53 @@ export function createDoctorCard(doctor) {
         alert("An error occurred while deleting the doctor. Please try again.");
       }
     });
-    actions.appendChild(deleteBtn);
-  } else if (role === 'patient') {
+
+    actionsDiv.appendChild(removeBtn);
+  } else if (role === 'loggedPatient') {
     const bookBtn = document.createElement('button');
     bookBtn.textContent = 'Book Now';
     bookBtn.className = 'book-btn';
-    bookBtn.addEventListener('click', async () => {
+
+    bookBtn.addEventListener('click', async (event) => {
       const token = localStorage.getItem("token");
       if (!token) {
         alert("Please log in to book an appointment.");
         return;
       }
+
       try {
-        const patientData = await fetchPatientDetails(token);
-        overlay(doctor, patientData);
+        const patientData = await getPatientData(token);
+        if (!patientData) {
+          alert("Unable to load your patient profile. Please log in again.");
+          return;
+        }
+
+        if (typeof window.showBookingOverlay === 'function') {
+          window.showBookingOverlay(event, doctor, patientData);
+        } else {
+          alert('Booking UI is not available right now. Please refresh the page.');
+        }
       } catch (error) {
         console.error("Error fetching patient details:", error);
         alert("An error occurred while fetching your details. Please try again.");
       }
     });
-    actions.appendChild(bookBtn);
+
+    actionsDiv.appendChild(bookBtn);
   } else {
     const bookBtn = document.createElement('button');
     bookBtn.textContent = 'Book Now';
     bookBtn.className = 'book-btn';
+
     bookBtn.addEventListener('click', () => {
       alert("Please log in to book an appointment.");
     });
-    actions.appendChild(bookBtn);
+
+    actionsDiv.appendChild(bookBtn);
   }
 
-  card.appendChild(doctorInfo);
-  card.appendChild(actions);
+  card.appendChild(infoDiv);
+  card.appendChild(actionsDiv);
 
   return card;
 }

@@ -2,12 +2,13 @@
 import { API_BASE_URL } from "../config/config.js";
 const APPOINTMENT_API = `${API_BASE_URL}/appointments`;
 
+// This is for the doctor to fetch appointments for a specific doctor on a date.
+export async function getAllAppointments(doctorId, date, patientName, token) {
+  const safePatientName = patientName && patientName !== 'null' ? encodeURIComponent(patientName) : 'all';
+  const response = await fetch(`${APPOINTMENT_API}/${doctorId}/${date}/${safePatientName}/${token}`);
 
-//This is for the doctor to get all the patient Appointments
-export async function getAllAppointments(date, patientName, token) {
-  const response = await fetch(`${APPOINTMENT_API}/${date}/${patientName}/${token}`);
   if (!response.ok) {
-    throw new Error("Failed to fetch appointments");
+    throw new Error(`Failed to fetch appointments: ${response.status}`);
   }
 
   return await response.json();

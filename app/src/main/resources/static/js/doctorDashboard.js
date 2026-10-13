@@ -1,62 +1,139 @@
-import {getAllAppointments} from './appointmentServices.js';
-import { createPatientRow } from '../components/patientRow.js';
-import { renderContent } from './renderContent.js';
+import { getAllAppointments } from './services/appointmentRecordService.js';
 
-const tableBody = document.getElementById('appointmentsTableBody');
-let selectedDate = new Date().toISOString().split('T')[0]; // Default to today's date
-const token = localStorage.getItem("token");
-let patientName = null; // Initialize patientName to null for filtering
+const tableBody = document.getElementById('patientTableBody');
+const searchBar = document.getElementById('searchBar');
+const datePicker = document.getElementById('datePicker');
+const todayButton = document.getElementById('todayButton');
 
-document.getElementById('searchBar').addEventListener('input', (event) => {
-  const inputValue = event.target.value.trim();
-  patientName = inputValue ? inputValue : "null"; // Use "null" if input is empty
-  loadAppointments();
-});
+let selectedDate = new Date().toISOString().split('T')[0];
+let patientName = null;
+const token = localStorage.getItem('token');
 
-document.getElementById('todayBtn').addEventListener('click', () => {
-  selectedDate = new Date().toISOString().split('T')[0]; // Reset to today's date
-  document.getElementById('datePicker').value = selectedDate;
-  loadAppointments();
-});
+function renderDoctorSummary(appointments) {
+  const summaryContainer = document.getElementById('doctorSummaryCards');
+  if (!summaryContainer) return;
 
-document.getElementById('datePicker').addEventListener('change', (event) => {
-  selectedDate = event.target.value;
-  loadAppointments();
-});
+  const rows = Array.isArray(appointments) ? appointments : [];
+  const total = rows.length;
+  const completed = rows.filter(appointment => {
+    const status = Number(appointment?.status ?? appointment?.appointmentStatus ?? 0);
+    return status === 1 || status === 2 || appointment?.status === 'Completed';
+  }).length;
+  const pending = total - completed;
+
+  summaryContainer.innerHTML = `
+    <div class="summary-card">
+      <span>Total</span>
+      <strong>${total}</strong>
+    </div>
+    <div class="summary-card">
+      <span>Completed</span>
+      <strong>${completed}</strong>
+    </div>
+    <div class="summary-card">
+      <span>Pending</span>
+      <strong>${pending}</strong>
+    </div>
+  `;
+}
+
+function normalizePatientName(value) {
+  if (!value || value === 'null' || value === 'all') {
+    return null;
+  }
+  return value.trim();
+}
+
+function getDoctorIdFromToken() {
+  try {
+    const rawToken = token?.split('.')[1];
+    if (!rawToken) return null;
+    const payload = JSON.parse(atob(rawToken.replace(/-/g, '+').replace(/_/g, '/')));
+    return payload.userId || payload.userID || null;
+  } catch (error) {
+    console.error('Failed to decode doctor token:', error);
+    return null;
+  }
+}
+
+function statusBadge(status) {
+  const normalized = Number(status ?? 0);
+  const label = normalized === 1 || normalized === 2 || status === 'Completed' ? 'Completed' : 'Pending';
+  const className = label === 'Completed' ? 'status-badge completed' : 'status-badge pending';
+  return `<span class="${className}">${label}</span>`;
+}
+
+function buildPatientRow(appointment) {
+  const patient = appointment.patient || {};
+  const row = document.createElement('tr');
+
+  row.innerHTML = `
+    <td>${patient.id ?? appointment.patientId ?? ''}</td>
+    <td>${patient.name ?? appointment.patientName ?? ''}</td>
+    <td>${patient.phone ?? appointment.patientPhone ?? ''}</td>
+    <td>${patient.email ?? appointment.patientEmail ?? ''}</td>
+    <td>${statusBadge(appointment.status)}</td>
+  `;
+
+  return row;
+}
 
 async function loadAppointments() {
+  if (!tableBody) return;
+
+  const doctorId = getDoctorIdFromToken();
+  if (!doctorId || !token) {
+    renderDoctorSummary([]);
+    tableBody.innerHTML = '<tr><td colspan="5" class="empty-state">Doctor session is invalid. Please log in again.</td></tr>';
+    return;
+  }
+
   try {
-    const appointments = await getAllAppointments(selectedDate, patientName, token);
-    tableBody.innerHTML = ''; // Clear existing rows
+    tableBody.innerHTML = '<tr><td colspan="5" class="empty-state">Loading appointments…</td></tr>';
+    const appointments = await getAllAppointments(doctorId, selectedDate, patientName, token);
+    renderDoctorSummary(appointments);
+    tableBody.innerHTML = '';
 
     if (!appointments || appointments.length === 0) {
-      const noDataRow = document.createElement('tr');
-      noDataRow.innerHTML = `<td colspan="4">No Appointments found for today.</td>`;
-      tableBody.appendChild(noDataRow);
+      tableBody.innerHTML = '<tr><td colspan="5" class="empty-state">No appointments found for this date.</td></tr>';
       return;
     }
 
     appointments.forEach(appointment => {
-      const patient = {
-        id: appointment.patientId,
-        name: appointment.patientName,
-        phone: appointment.patientPhone,
-        email: appointment.patientEmail
-      };
-      const row = createPatientRow(appointment, patient);
-      tableBody.appendChild(row);
+      tableBody.appendChild(buildPatientRow(appointment));
     });
   } catch (error) {
-    console.error("Error loading appointments:", error);
-    const errorRow = document.createElement('tr');
-    errorRow.innerHTML = `<td colspan="4">Error loading appointments. Try again later.</td>`;
-    tableBody.appendChild(errorRow);
+    console.error('Error loading appointments:', error);
+    renderDoctorSummary([]);
+    tableBody.innerHTML = '<tr><td colspan="5" class="empty-state">Error loading appointments. Try again later.</td></tr>';
   }
 }
 
+if (searchBar) {
+  searchBar.addEventListener('input', (event) => {
+    patientName = normalizePatientName(event.target.value);
+    loadAppointments();
+  });
+}
+
+if (todayButton) {
+  todayButton.addEventListener('click', () => {
+    selectedDate = new Date().toISOString().split('T')[0];
+    if (datePicker) datePicker.value = selectedDate;
+    loadAppointments();
+  });
+}
+
+if (datePicker) {
+  datePicker.addEventListener('change', (event) => {
+    selectedDate = event.target.value;
+    loadAppointments();
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-  renderContent(); // Assuming this sets up the UI layout
-  loadAppointments(); // Load today's appointments by default
+  if (datePicker) datePicker.value = selectedDate;
+  loadAppointments();
 });
 
 /*

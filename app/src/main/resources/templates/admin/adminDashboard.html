@@ -10,44 +10,46 @@
     <link rel="icon" type="image/png" th:href="@{/assets/images/logo/logo.png}">
 
 
-    <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/assets/css/style.css}">
 
 
-    <link rel="stylesheet" type="text/css" th:href="@{/css/admin-dashboard.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/assets/css/adminDashboard.css}">
 
 
 
-    <script th:src="@{/js/header.js}" defer></script>
-    <script th:src="@{/js/footer.js}" defer></script>
-    <script th:src="@{/js/util.js}" defer></script>
-    <script th:src="@{/js/render.js}" defer></script>
+    <script defer th:src="@{/js/components/header.js}"></script>
+    <script defer th:src="@{/js/components/footer.js}"></script>
+    <script defer th:src="@{/js/util.js}"></script>
+    <script defer th:src="@{/js/render.js}"></script>
 </head>
 
-<body> onload="renderContent()">
+<body>
     <div class="container">
         <div class="wrapper">
             <div id="header"></div>
 
             <main class="main-content">
-                <input type="text" id="searchBar" placeholder="Search...">
+                <input type="text" id="searchBar" class="searchBar" placeholder="Search Bar" aria-label="Search Bar" />
 
-                <select id="timeFilter">
-                    <option value="">Select Time</option>
-                    <option value="AM">AM</option>
-                    <option value="PM">PM</option>
-                </select>
+                <div class="filter-wrapper">
+                    <select id="timeFilter" class="filter-select">
+                        <option value="">Select Time</option>
+                        <option value="AM">AM</option>
+                        <option value="PM">PM</option>
+                    </select>
 
-                <select id="specialtyFilter">
-                    <option value="">Select Specialty</option>
-                    <option value="Cardiologist">Cardiologist</option>
-                    <option value="Dentist">Dentist</option>
-                    <option value="Dermatologist">Dermatologist</option>
-                    <option value="Neurologist">Neurologist</option>
-                    <option value="Pediatrician">Pediatrician</option>
-                    <option value="Orthopedist">Orthopedist</option>
-                    <option value="Neurologist">Neurologist</option>
-                </select>
+                    <select id="specialtyFilter" class="filter-select">
+                        <option value="">Select Specialty</option>
+                        <option value="Cardiologist">Cardiologist</option>
+                        <option value="Dentist">Dentist</option>
+                        <option value="Dermatologist">Dermatologist</option>
+                        <option value="Neurologist">Neurologist</option>
+                        <option value="Pediatrician">Pediatrician</option>
+                        <option value="Orthopedist">Orthopedist</option>
+                    </select>
+                </div>
 
+                <div id="summaryCards" class="summary-cards" aria-live="polite"></div>
                 <div id="content"></div>
             </main>
 
@@ -55,19 +57,18 @@
         </div>
     </div>
 
-    <!-- Modal Structure -->
     <div id="modal" class="modal">
         <div class="modal-content">
-            <span class="close">&times;</span>
+            <span id="closeModal" class="close">&times;</span>
             <div id="modal-body"></div>
         </div>
     </div>
 
-    <!-- Include JavaScript files specific to the admin dashboard -->
     <script type="module" th:src="@{/js/adminDashboard.js}" defer></script>
-    <script type="module" th:src="@{/js/doctorCard.js}" defer></script>
 </body>
 </html>
+
+                
 
 
 <!-- adminDashboard.html -->

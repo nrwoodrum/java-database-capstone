@@ -5,14 +5,26 @@ import { filterDoctors } from './services/doctorServices.js';
 import { bookAppointment } from './services/appointmentRecordService.js';
 
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", initializeLoggedPatientPage);
+
+function initializeLoggedPatientPage() {
+  const searchBar = document.getElementById("searchBar");
+  const filterTime = document.getElementById("filterTime");
+  const filterSpecialty = document.getElementById("filterSpecialty");
+
+  if (searchBar) searchBar.addEventListener("input", filterDoctorsOnChange);
+  if (filterTime) filterTime.addEventListener("change", filterDoctorsOnChange);
+  if (filterSpecialty) filterSpecialty.addEventListener("change", filterDoctorsOnChange);
+
   loadDoctorCards();
-});
+}
 
 function loadDoctorCards() {
+  const contentDiv = document.getElementById("content");
+  if (!contentDiv) return;
+
   getDoctors()
     .then(doctors => {
-      const contentDiv = document.getElementById("content");
       contentDiv.innerHTML = "";
 
       doctors.forEach(doctor => {
@@ -25,7 +37,7 @@ function loadDoctorCards() {
     });
 }
 
-export function showBookingOverlay(e, doctor, patient) {
+window.showBookingOverlay = function showBookingOverlay(e, doctor, patient) {
   const button = e.target;
   const rect = button.getBoundingClientRect();
   console.log(patient.name)
@@ -86,18 +98,19 @@ export function showBookingOverlay(e, doctor, patient) {
 
 
 
-// Filter Input
-document.getElementById("searchBar").addEventListener("input", filterDoctorsOnChange);
-document.getElementById("filterTime").addEventListener("change", filterDoctorsOnChange);
-document.getElementById("filterSpecialty").addEventListener("change", filterDoctorsOnChange);
-
-
-
 function filterDoctorsOnChange() {
-  const searchBar = document.getElementById("searchBar").value.trim();
-  const filterTime = document.getElementById("filterTime").value;
-  const filterSpecialty = document.getElementById("filterSpecialty").value;
+  const searchBarInput = document.getElementById("searchBar");
+  const filterTimeInput = document.getElementById("filterTime");
+  const filterSpecialtyInput = document.getElementById("filterSpecialty");
+  const contentDiv = document.getElementById("content");
 
+  if (!searchBarInput || !filterTimeInput || !filterSpecialtyInput || !contentDiv) {
+    return;
+  }
+
+  const searchBar = searchBarInput.value.trim();
+  const filterTime = filterTimeInput.value;
+  const filterSpecialty = filterSpecialtyInput.value;
 
   const name = searchBar.length > 0 ? searchBar : null;
   const time = filterTime.length > 0 ? filterTime : null;
@@ -105,19 +118,16 @@ function filterDoctorsOnChange() {
 
   filterDoctors(name, time, specialty)
     .then(response => {
-      const doctors = response.doctors;
-      const contentDiv = document.getElementById("content");
+      const doctors = response?.doctors || [];
       contentDiv.innerHTML = "";
 
       if (doctors.length > 0) {
-        console.log(doctors);
         doctors.forEach(doctor => {
           const card = createDoctorCard(doctor);
           contentDiv.appendChild(card);
         });
       } else {
         contentDiv.innerHTML = "<p>No doctors found with the given filters.</p>";
-        console.log("Nothing");
       }
     })
     .catch(error => {
@@ -128,11 +138,12 @@ function filterDoctorsOnChange() {
 
 export function renderDoctorCards(doctors) {
   const contentDiv = document.getElementById("content");
+  if (!contentDiv) return;
+
   contentDiv.innerHTML = "";
 
   doctors.forEach(doctor => {
     const card = createDoctorCard(doctor);
     contentDiv.appendChild(card);
   });
-
 }

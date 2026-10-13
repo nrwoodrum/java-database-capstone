@@ -1,40 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>Select Role</title>
-        <link rel="icon" href="../assets/images/logo/Logo.png">
-        <link rel="stylesheet" href="../assets/css/index.css">
-        <link rel="stylesheet" href="../assets/css/style.css">
-        <script src="../js/util.js" defer></script>
-        <script src="../js/render.js" defer></script>
-        <script src="../js/components/header.js" defer></script>
-        <script src="../js/components/footer.js" defer></script> 
-    </head>
-    <body>
-        <div class="container">
-            <div class="wrapper">
-                <div id="header"></div>
-                <main>
-                    <h1>Select Your Role</h1>
-                    <button id="adminBtn">Admin</button>
-                    <button id="patientBtn">Patient</button>
-                    <button id="doctorBtn">Doctor</button>
-                </main>
-                <div id="footer"></div>
-            </div>
-        </div>
 
-        <!-- Modal Structure -->
-        <div id="modal" class="modal">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                <!-- Dynamic content will be loaded here -->
-            </div>
-        </div>
+<head>
+    <meta charset="UTF-8">
+    <title>Select Role</title>
+    <link rel="icon" href="../assets/images/logo/Logo.png">
+    <link rel="stylesheet" href="../assets/css/index.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <script src="../js/util.js" defer></script>
+    <script src="../js/render.js" defer></script>
+    <script src="../js/components/header.js" defer></script>
+    <script src="../js/components/footer.js" defer></script>
+</head>
 
-        <script type="module" src="../js/index.js" defer></script>
-    </body>
+<body>
+    <div class="container">
+        <div class="wrapper">
+            <div id="header"></div>
+
+            <main class="main-content">
+                <div class="hero-panel">
+                    <p class="eyebrow">Hospital Management</p>
+                    <h2>Select Your Role</h2>
+                    <p class="hero-copy">Access your secure dashboard to manage appointments, patient records, and clinic operations.</p>
+                </div>
+
+                <div class="role-grid" aria-label="Role selection">
+                    <button id="adminBtn" class="button-section" onclick="selectRole('admin')">
+                        <span class="button-label">Admin</span>
+                        <small>Clinic operations</small>
+                    </button>
+                    <button id="doctorBtn" class="button-section" onclick="selectRole('doctor')">
+                        <span class="button-label">Doctor</span>
+                        <small>Patient schedule</small>
+                    </button>
+                    <button id="patientBtn" class="button-section" onclick="selectRole('patient')">
+                        <span class="button-label">Patient</span>
+                        <small>Appointments & records</small>
+                    </button>
+                    <button id="patientSignupBtn" class="button-section accent" type="button" onclick="openModal('patientSignup')">
+                        <span class="button-label">Create New User</span>
+                        <small>Register instantly</small>
+                    </button>
+                </div>
+            </main>
+
+            <div id="footer"></div>
+        </div>
+    </div>
+    <!-- Modal Structure -->
+    <div id="modal" class="modal" hidden>
+        <div class="modal-content">
+            <button id="closeModal" class="close" type="button" aria-label="Close modal">&times;</button>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <script type="module" src="../js/services/index.js" defer></script>
+</body>
 <!-- index.html -->
 <!-- 
 

@@ -1,9 +1,9 @@
-import { API_BASE_URL } from "../config/config";
-const DOCTOR_API = `${API_BASE_URL}/api/doctors`;
+import { API_BASE_URL } from "../config/config.js";
+const DOCTOR_API = `${API_BASE_URL}/doctor`;
 
 export async function getDoctors() {
   try {
-    const response = await fetch(DOCTOR_API);
+    const response = await fetch(`${DOCTOR_API}/`);
     const data = await response.json();
     return data.doctors;
   } catch (error) {
@@ -42,7 +42,13 @@ export async function saveDoctor(doctor, token) {
 
 export async function filterDoctors(name, time, specialty) {
   try {
-    const response = await fetch(`${DOCTOR_API}/filter/${name}/${time}/${specialty}`);
+    const params = new URLSearchParams();
+
+    if (name && name !== "null") params.set("name", name);
+    if (time && time !== "null") params.set("time", time);
+    if (specialty && specialty !== "null") params.set("specialty", specialty);
+
+    const response = await fetch(`${DOCTOR_API}/filter?${params.toString()}`);
     if (response.ok) {
       const data = await response.json();
       return data;
@@ -56,8 +62,6 @@ export async function filterDoctors(name, time, specialty) {
     return { doctors: [] };
   }
 }
-
-export { getDoctors, deleteDoctor, saveDoctor, filterDoctors };
 
 /*
   Import the base API URL from the config file

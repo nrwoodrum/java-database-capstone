@@ -9,18 +9,18 @@
 
     <link rel="icon" type="image/png" th:href="@{/assets/images/logo/logo.png}" />
 
-    <link rel="stylesheet" type="text/css" th:href="@{/css/adminDashboard.css}" />
-    <link rel="stylesheet" type="text/css" th:href="@{/css/doctorDashboard.css}" />
-    <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/assets/css/adminDashboard.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/assets/css/doctorDashboard.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/assets/css/style.css}" />
 
     <script th:src="@{/js/render.js}" defer></script>
     <script th:src="@{/js/util.js}" defer></script>
-    <script th:src="@{/js/header.js}" defer></script>
-    <script th:src="@{/js/footer.js}" defer></script>
+    <script th:src="@{/js/components/header.js}" defer></script>
+    <script th:src="@{/js/components/footer.js}" defer></script>
     <script type="module" th:src="@{/js/doctorDashboard.js}" defer></script>
 </head>
 
-<body onload="renderContent()">
+<body>
     <div class="container">
         <div class="wrapper">
             <div id="header"></div>
@@ -28,12 +28,14 @@
 
 
             <div class="main-content">
-                <input type="text" id="searchBar" class="searchBar" placeholder="Search Bar for custom output" />
+                <input type="text" id="searchBar" class="searchBar" placeholder="Search Bar" aria-label="Search Bar" />
 
                 <div class="filter-section">
                     <button id="todayButton">Today's Appointments</button>
                     <input type="date" id="datePicker" />
                 </div>
+
+                <div id="doctorSummaryCards" class="summary-cards" aria-live="polite"></div>
 
                 <table class="patient-table">
                     <thead>
@@ -42,7 +44,7 @@
                             <th>Name</th>
                             <th>Phone No.</th>
                             <th>Email</th>
-                            <th>Prescription</th>
+                            <th>Status</th>
                         </tr>
                     </thead>
                     <tbody id="patientTableBody"></tbody>

@@ -1,6 +1,5 @@
 package com.project.back_end.mvc;
-import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -9,30 +8,34 @@ import com.project.back_end.services.TokenService;
 @Controller
 public class DashboardController {
 
-    @Autowired
-    private TokenService service;
+    private final TokenService tokenService;
+
+    public DashboardController(TokenService tokenService) {
+        this.tokenService = tokenService;
+    }
 
     @GetMapping("/adminDashboard/{token}")
     public String adminDashboard(@PathVariable String token) {
-        String error = service.validateToken(token, "admin");
-        if (error == null) {
-            return "admin/adminDashboard";
-        } else {
+        if (token == null || token.isBlank()) {
             return "redirect:/";
         }
+        if (tokenService.validateToken(token, "admin")) {
+            return "admin/adminDashboard";
+        }
+        return "redirect:/";
     }
 
     @GetMapping("/doctorDashboard/{token}")
     public String doctorDashboard(@PathVariable String token) {
-        String error = service.validateToken(token, "doctor");
-        if (error == null) {
-            return "doctor/doctorDashboard";
-        } else {
+        if (token == null || token.isBlank()) {
             return "redirect:/";
         }
+        if (tokenService.validateToken(token, "doctor")) {
+            return "doctor/doctorDashboard";
+        }
+        return "redirect:/";
+        }
     }
-
-
     
 
     
@@ -59,6 +62,3 @@ public class DashboardController {
 //    - Validates the token using the shared service for the `"doctor"` role.
 //    - If the token is valid, forwards the user to the `"doctor/doctorDashboard"` view.
 //    - If the token is invalid, redirects to the root URL.
-
-
-}

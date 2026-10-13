@@ -3,6 +3,7 @@ package com.project.back_end.models;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -71,7 +72,9 @@ public class Doctor {
 
     // 7. Doctor's available appointment time slots.
     //    Stored as a separate collection in the database.
-    @ElementCollection
+    // EAGER fetch ensures the list is available at serialization time without
+    // triggering lazy-initialization errors after the session closes.
+    @ElementCollection(fetch = FetchType.EAGER)
     private List<String> availableTimes = new ArrayList<>();
 
     // No-argument constructor required by JPA.

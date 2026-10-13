@@ -1,22 +1,27 @@
 package com.project.back_end.services;
 
-import java.nio.charset.StandardCharsets;
+
 import java.util.Date;
 
 import javax.crypto.SecretKey;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.project.back_end.models.Admin;
+import com.project.back_end.models.Doctor;
+import com.project.back_end.models.Patient;
 import com.project.back_end.repo.AdminRepository;
 import com.project.back_end.repo.DoctorRepository;
 import com.project.back_end.repo.PatientRepository;
 
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+
 import io.jsonwebtoken.security.Keys;
 
 @Component
 public class TokenService {
+
     private final AdminRepository adminRepository;
     private final DoctorRepository doctorRepository;
     private final PatientRepository patientRepository;
@@ -27,55 +32,93 @@ public class TokenService {
         this.patientRepository = patientRepository;
     }
 
-public String generateToken(String email, String userType) {
-    String token = Jwts.builder()
-            .setSubject(email)
-            .setIssuedAt(new Date())
-            .setExpiration(new Date(System.currentTimeMillis() + 604800000)) // 7 days
-            .signWith(getSigningKey(), SignatureAlgorithm.HS256)
-            .compact();
-    return token;
+public String generateToken(String email) {
+    return generateToken(null, null, email);
 }
 
-public String extractIdentifier(String token) {
-    String email = Jwts.parserBuilder()
-            .setSigningKey(getSigningKey())
-            .build()
-            .parseClaimsJws(token)
-            .getBody()
-            .getSubject();
-    return email;
-}
+@Value("${jwt.secret}")
+private String jwtSecret;
 
-public String validateToken(String token, String userType) {
-    boolean isValid = false;
-    try {
-        String email = extractIdentifier(token);
-        switch (userType) {
-            case "admin":
-                isValid = adminRepository.findByEmail(email) != null;
-                break;
-            case "doctor":
-                isValid = doctorRepository.findByEmail(email) != null;
-                break;
-            case "patient":
-                isValid = patientRepository.findByEmail(email) != null;
-                break;
-            default:
-                return "Invalid user type";
-        }
-        if (!isValid) {
-            return "User not found for the specified role";
-        }
-    } catch (Exception e) {
-        return "Invalid or expired token";
+    private SecretKey getSigningKey() {
+        return Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
-    return null; // Token is valid
+
+
+public String extractEmail(String token) {
+    if (token == null || token.isBlank()) {
+        throw new IllegalArgumentException("Token is required.");
+    }
+
+    return Jwts.parser()
+            .verifyWith(getSigningKey())
+            .build()
+            .parseSignedClaims(token)
+            .getPayload()
+            .getSubject();
 }
 
-public SecretKey getSigningKey() {
-    String secretKey = "your-256-bit-secret"; // Replace with your actual secret key
-    return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
+public boolean validateToken(String token, String user) {
+    if (token == null || token.isBlank() || user == null || user.isBlank()) {
+        return false;
+    }
+
+    try {
+            String extracted = extractEmail(token);
+            if(user.equals("admin"))
+            {
+                Admin admin =adminRepository.findByUsername(extracted);
+                if(admin!=null)
+                {
+                    return true;
+                }
+            }
+            else if(user.equals("doctor"))
+            {
+                Doctor doctor=doctorRepository.findByEmail(extracted);
+                if(doctor!=null)
+                {
+                    return true;
+                }
+            }
+            else if(user.equals("patient"))
+            {
+                Patient patient=patientRepository.findByEmail(extracted);
+                if(patient!=null)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public String extractEmailFromToken(String token) {
+        return extractEmail(token);
+    }
+
+    public String generateToken(Object userId, String userType, String email) {
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("Email is required to generate a token.");
+        }
+
+        return Jwts.builder()
+                .subject(email)
+                .claim("userId", userId)
+                .claim("userType", userType)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + 604800000)) // 7 days
+                .signWith(getSigningKey())
+                .compact();
+    }
+
+    public Long extractDoctorIdFromToken(String token) {
+        throw new UnsupportedOperationException("Unimplemented method 'extractDoctorIdFromToken'");
+    }
+
+   
 }
 
 
@@ -126,6 +169,3 @@ public SecretKey getSigningKey() {
 // - If the role or user does not exist, it returns false, indicating the token is invalid.
 // - The method gracefully handles any errors by returning false if the token is invalid or an exception occurs.
 // This ensures secure access control based on the user's role and their existence in the system.
-
-
-}

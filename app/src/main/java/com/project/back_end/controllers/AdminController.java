@@ -3,7 +3,6 @@ package com.project.back_end.controllers;
 
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,11 +13,10 @@ import com.project.back_end.models.Admin;
 import com.project.back_end.services.AdminService;
 
 @RestController
-@RequestMapping("${api.path}admin")
+@RequestMapping("/admin")
 public class AdminController {
 
-    @Autowired
-    private final AdminService adminService;
+     private final AdminService adminService;
 
     public AdminController(AdminService adminService) {
         this.adminService = adminService;
@@ -26,12 +24,8 @@ public class AdminController {
 
     @PostMapping("/login")
     public ResponseEntity<Map<String, String>> adminLogin(@RequestBody Admin admin) {
-        Map<String, String> response = adminService.validateAdmin(admin);
-        return ResponseEntity.ok(response);
+        return adminService.validateAdmin(admin.getUsername(), admin.getPassword());
     }
-
-
-
     // 1. Set Up the Controller Class:
     // - Annotate the class with `@RestController` to indicate that it's a REST
     // controller, used to handle web requests and return JSON responses.

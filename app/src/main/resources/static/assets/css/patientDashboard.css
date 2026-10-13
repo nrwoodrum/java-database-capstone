@@ -1,12 +1,86 @@
 /* This is the style sheet for the patientDashboard.html */
+  .searchBar,
+  .filter-select {
+    display: block;
+    width: 100%;
+    max-width: 420px;
+    min-height: 48px;
+    padding: 12px 14px;
+    font-size: 1rem;
+    border-radius: 10px;
+    border: 1px solid #cfe0e3;
+    box-sizing: border-box;
+    background: #ffffff;
+    color: #123a3b;
+  }
+
+  .filter-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    max-width: 860px;
+    margin: 10px auto 0;
+  }
+
+  #filterTime,
+  #filterSpecialty {
+    min-width: 180px;
+    flex: 1 1 180px;
+  }
+
+  .searchBar {
+    margin-bottom: 12px;
+  }
+
+  .doctor-card {
+    width: min(100%, 420px);
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(19, 58, 59, 0.08);
+    border-radius: 18px;
+    box-shadow: 0 10px 26px rgba(18, 58, 59, 0.08);
+    overflow: hidden;
+    text-align: left;
+  }
+
+  .doctor-info {
+    padding: 20px 20px 12px;
+  }
+
+  .doctor-card h3 {
+    margin: 0 0 12px;
+    font-size: 1.5rem;
+    color: #123a3b;
+  }
+
+  .doctor-card p {
+    margin: 8px 0;
+    color: #254d50;
+    line-height: 1.5;
+    font-size: 0.97rem;
+  }
+
   .card-actions {
     background-color: #244557;
-    padding: 10px;
+    padding: 14px 12px;
     text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 
   .card-actions:hover{
     background-color: #1c3745;
+  }
+
+  .book-btn,
+  .delete-btn {
+    min-height: 44px;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-size: 0.98rem;
+    font-weight: 600;
   }
   .ripple-overlay {
     position: fixed;

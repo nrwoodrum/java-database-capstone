@@ -1,58 +1,123 @@
-renderHeader();
+function renderHeader() {
+  const headerDiv = document.getElementById("header");
+  if (!headerDiv) return;
 
-headerDiv.innerHTML = headerContent;
-headerDiv=document.getElementById("header");
+  // If on the root page, remove the user session and render a minimal header
+  if (window.location.pathname.endsWith("/")) {
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("token");
+    headerDiv.innerHTML = `
+      <header class="header">
+        <div class="logo-section">
+          <img src="../assets/images/logo/logo.png" alt="Hospital CRM Logo" class="logo-img">
+          <span class="logo-title">Hospital CMS</span>
+        </div>
+      </header>
+    `;
+    return;
+  }
 
-window.location.pathname.endsWith("/") && (localStorage.removeItem("userRole"), headerDiv.innerHTML = `
-  <header class="header">
-    <div class="logo-section">
-      <img src="../assets/images/logo/logo.png" alt="Hospital CRM Logo" class="logo-img">
-      <span class="logo-title">Hospital CMS</span>
-    </div>
-  </header>`);
+  const role = localStorage.getItem("userRole");
+  const token = localStorage.getItem("token");
 
-const role = localStorage.getItem("userRole");
-const token = localStorage.getItem("token");
+  let headerContent = `
+    <header class="header">
+      <div class="logo-section">
+        <img src="../assets/images/logo/logo.png" alt="Hospital CRM Logo" class="logo-img">
+        <span class="logo-title">Hospital CMS</span>
+      </div>
+      <nav>
+  `;
 
-let headerContent = `<header class="header">
-  <div class="logo-section">
-    <img src="../assets/images/logo/logo.png" alt="Hospital CRM Logo" class="logo-img">
-    <span class="logo-title">Hospital CMS</span>
-  </div>
-  <nav>`;
+  // If a user role exists but no token is present, session is invalid
+  if ((role === "loggedPatient" || role === "admin" || role === "doctor") && !token) {
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("token");
+    alert("Session expired or invalid login. Please log in again.");
+    window.location.href = "/";
+    return;
+  }
 
-if ((role === "loggedPatient" || role === "admin" || role === "doctor") && !token) {
-  localStorage.removeItem("userRole");
-  alert("Session expired or invalid login. Please log in again.");
-  window.location.href = "/";   // or a specific login page
-  return;
-} else if (role === "admin") {
+  if (role === "admin" && !window.location.pathname.includes('/adminDashboard')) {
+    // Allow the header to render on non-dashboard pages without forcing a redirect.
+  }
+
+  if (role === "admin") {
+    headerContent += `
+      <button id="addDocBtn" class="adminBtn" type="button">Add Doctor</button>
+      <a href="#" onclick="logout()">Logout</a>
+    `;
+  } else if (role === "doctor") {
+    headerContent += `
+      <button class="adminBtn" type="button" onclick="window.location.href='/doctorDashboard.html'">Home</button>
+      <a href="#" onclick="logout()">Logout</a>
+    `;
+  } else if (role === "patient") {
+    headerContent += `
+      <button id="patientLogin" class="adminBtn" type="button">Login</button>
+      <button id="patientSignup" class="adminBtn" type="button">Sign Up</button>
+    `;
+  } else if (role === "loggedPatient") {
+    headerContent += `
+      <button id="home" class="adminBtn" type="button" onclick="window.location.href='/pages/loggedPatientDashboard.html'">Home</button>
+      <button id="patientAppointments" class="adminBtn" type="button" onclick="window.location.href='/pages/patientAppointments.html'">Appointments</button>
+      <a href="#" onclick="logoutPatient()">Logout</a>
+    `;
+  }
+
   headerContent += `
-    <button id="addDocBtn" class="adminBtn" onclick="openModal('addDoctor')">Add Doctor</button>
-    <a href="#" onclick="logout()">Logout</a>`;
-} else if (role === "doctor") {
-  headerContent += `
-    <button class="adminBtn"  onclick="selectRole('doctor')">Home</button>
-    <a href="#" onclick="logout()">Logout</a>`;
-} else if (role === "patient") {
-  headerContent += `
-    <button id="patientLogin" class="adminBtn">Login</button>
-    <button id="patientSignup" class="adminBtn">Sign Up</button>`;
-} else if (role === "loggedPatient") {
-  headerContent += `
-    <button id="home" class="adminBtn" onclick="window.location.href='/pages/loggedPatientDashboard.html'">Home</button>
-    <button id="patientAppointments" class="adminBtn" onclick="window.location.href='/pages/patientAppointments.html'">Appointments</button>
-    <a href="#" onclick="logoutPatient()">Logout</a>`;
+      </nav>
+    </header>
+  `;
+
+  headerDiv.innerHTML = headerContent;
+  attachHeaderButtonListeners();
 }
 
-headerContent += `
-  </nav>
-</header>`;
+function attachHeaderButtonListeners() {
+  const addDocBtn = document.getElementById("addDocBtn");
+  const patientLoginBtn = document.getElementById("patientLogin");
+  const patientSignupBtn = document.getElementById("patientSignup");
 
-headerDiv.innerHTML = headerContent;
+  if (addDocBtn) {
+    addDocBtn.addEventListener("click", () => {
+      if (typeof openModal === "function") {
+        openModal("addDoctor");
+      }
+    });
+  }
 
-attachHeaderButtonListeners();
+  if (patientLoginBtn) {
+    patientLoginBtn.addEventListener("click", () => {
+      if (typeof openModal === "function") {
+        openModal("login", "patient");
+      }
+    });
+  }
 
+  if (patientSignupBtn) {
+    patientSignupBtn.addEventListener("click", () => {
+      if (typeof openModal === "function") {
+        openModal("signup", "patient");
+      }
+    });
+  }
+}
+
+function logout() {
+  localStorage.removeItem("userRole");
+  localStorage.removeItem("token");
+  window.location.href = "/";
+}
+
+function logoutPatient() {
+  localStorage.removeItem("userRole");
+  localStorage.removeItem("token");
+  window.location.href = "/";
+}
+
+// Render the header on page load
+document.addEventListener("DOMContentLoaded", renderHeader);
 /*
   Step-by-Step Explanation of Header Section Rendering
 

@@ -1,6 +1,7 @@
 package com.project.back_end.controllers;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,52 +19,46 @@ import com.project.back_end.services.PrescriptionService;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("${api.path}prescription")
+@RequestMapping("/prescription")
 public class PrescriptionController {
 
-    @Autowired
+    
     private final PrescriptionService prescriptionService;
-    private final AdminService service;
+    private final AdminService adminservice;
     private final AppointmentService appointmentService;
 
-    public PrescriptionController(PrescriptionService prescriptionService, AdminService service, AppointmentService appointmentService) {
+    public PrescriptionController(PrescriptionService prescriptionService, AdminService adminservice, AppointmentService appointmentService) {
         this.prescriptionService = prescriptionService;
-        this.service = service;
+        this.adminservice = adminservice;
         this.appointmentService = appointmentService;
     }
 
     @PostMapping("/save/{token}")
-    public ResponseEntity<?> savePrescription(@RequestBody @Valid Prescription prescription, @PathVariable String token) {
-        String error = service.validateToken(token, "doctor");
-        if (error == null) {
-            // Update the appointment status to reflect that a prescription has been added
-            appointmentService.updateAppointmentStatus(prescription.getAppointment().getId(), "Prescription Added");
-            int result = prescriptionService.savePrescription(prescription);
-            if (result == 1) {
-                return ResponseEntity.ok("Prescription saved successfully");
-            } else {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to save prescription");
-            }
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    public ResponseEntity<?> savePrescription(@RequestBody @Valid Prescription prescription,
+                                             @PathVariable String token) {
+        if (!adminservice.validateToken(token, "doctor")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
         }
+
+        ResponseEntity<Map<String, String>> response = prescriptionService.savePrescription(prescription);
+
+        if (response.getStatusCode() == HttpStatus.CREATED) {
+            appointmentService.changeStatus(prescription.getAppointmentId(), 1);
+        }
+
+        return response;
     }
 
-    @GetMapping("/get/{appointmentId}/{token}")
-    public ResponseEntity<?> getPrescription(@PathVariable Long appointmentId, @PathVariable String token) {
-        String error = service.validateToken(token, "doctor");
-        if (error == null) {
-            Prescription prescription = prescriptionService.getPrescriptionByAppointmentId(appointmentId);
-            if (prescription != null) {
-                return ResponseEntity.ok(prescription);
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Prescription not found for the given appointment ID");
-            }
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    @GetMapping("/{appointmentId}/{token}")
+    public ResponseEntity<?> getPrescription(@PathVariable Long appointmentId,
+                                            @PathVariable String token) {
+        if (!adminservice.validateToken(token, "doctor")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
         }
+
+        return prescriptionService.getPrescription(appointmentId);
     }
-    
+}
 // 1. Set Up the Controller Class:
 //    - Annotate the class with `@RestController` to define it as a REST API controller.
 //    - Use `@RequestMapping("${api.path}prescription")` to set the base path for all prescription-related endpoints.
@@ -90,6 +85,3 @@ public class PrescriptionController {
 //    - Validates the token for the `"doctor"` role using the shared service.
 //    - If the token is valid, fetches the prescription using the `PrescriptionService`.
 //    - Returns the prescription details or an appropriate error message if validation fails.
-
-
-}

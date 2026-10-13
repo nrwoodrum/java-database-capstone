@@ -1,7 +1,7 @@
 // patientAppointment.js
 import { getPatientAppointments, getPatientData, filterAppointments } from "./services/patientServices.js";
 
-const tableBody = document.getElementById("patientTableBody");
+let tableBody = null;
 const token = localStorage.getItem("token");
 
 let allAppointments = [];
@@ -11,6 +11,13 @@ let patientId = null;
 document.addEventListener("DOMContentLoaded", initializePage);
 
 async function initializePage() {
+  tableBody = document.getElementById("patientTableBody");
+  const searchBar = document.getElementById("searchBar");
+  const appointmentFilter = document.getElementById("appointmentFilter");
+
+  if (searchBar) searchBar.addEventListener("input", handleFilterChange);
+  if (appointmentFilter) appointmentFilter.addEventListener("change", handleFilterChange);
+
   try {
     if (!token) throw new Error("No token found");
 
@@ -30,6 +37,12 @@ async function initializePage() {
 }
 
 function renderAppointments(appointments) {
+  if (!tableBody) {
+    tableBody = document.getElementById("patientTableBody");
+  }
+
+  if (!tableBody) return;
+
   tableBody.innerHTML = "";
 
   const actionTh = document.querySelector("#patientTable thead tr th:last-child");
@@ -80,13 +93,16 @@ function redirectToUpdatePage(appointment) {
 }
 
 
-// Search and Filter Listeners
-document.getElementById("searchBar").addEventListener("input", handleFilterChange);
-document.getElementById("appointmentFilter").addEventListener("change", handleFilterChange);
-
 async function handleFilterChange() {
-  const searchBarValue = document.getElementById("searchBar").value.trim();
-  const filterValue = document.getElementById("appointmentFilter").value;
+  const searchBar = document.getElementById("searchBar");
+  const appointmentFilter = document.getElementById("appointmentFilter");
+
+  if (!searchBar || !appointmentFilter || !token) {
+    return;
+  }
+
+  const searchBarValue = searchBar.value.trim();
+  const filterValue = appointmentFilter.value;
 
   const name = searchBarValue || null;
   const condition = filterValue === "allAppointments" ? null : filterValue || null;

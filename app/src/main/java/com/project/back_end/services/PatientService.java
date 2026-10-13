@@ -1,8 +1,12 @@
 package com.project.back_end.services;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.project.back_end.DTO.AppointmentDTO;
@@ -35,115 +39,148 @@ public class PatientService {
             return 0; // Failure
         }
     }
-@Transactional
-    public List<AppointmentDTO> getPatientAppointments(Long patientId, String token) {
-        // Validate the token
-        if (!tokenService.validateToken(token)) {
-            throw new IllegalArgumentException("Invalid token");
-        }
 
-        List<Appointment> appointments = appointmentRepository.findByPatientId(patientId);
-        return appointments.stream()
-                .map(appointment -> new AppointmentDTO(
-                        appointment.getId(),
-                        appointment.getDoctor().getId(),
-                        appointment.getDoctor().getName(),
-                        appointment.getPatient().getId(),
-                        appointment.getPatient().getName(),
-                        appointment.getPatient().getEmail(),
-                        appointment.getPatient().getPhone(),
-                        appointment.getPatient().getAddress(),
-                        appointment.getAppointmentTime(),
-                        appointment.getStatus()
-                ))
-                .collect(Collectors.toList());
-    }
-
-    public List<AppointmentDTO> filterByCondition(Long patientId, String condition) {
-        List<Appointment> appointments;
-        if ("past".equalsIgnoreCase(condition)) {
-            appointments = appointmentRepository.findByPatient_IdAndStatusOrderByAppointmentTimeAsc(patientId, 1);
-        } else if ("future".equalsIgnoreCase(condition)) {
-            appointments = appointmentRepository.findByPatient_IdAndStatusOrderByAppointmentTimeAsc(patientId, 0);
-        } else {
-            throw new IllegalArgumentException("Invalid condition: " + condition);
-        }
-
-        return appointments.stream()
-                .map(appointment -> new AppointmentDTO(
-                        appointment.getId(),
-                        appointment.getDoctor().getId(),
-                        appointment.getDoctor().getName(),
-                        appointment.getPatient().getId(),
-                        appointment.getPatient().getName(),
-                        appointment.getPatient().getEmail(),
-                        appointment.getPatient().getPhone(),
-                        appointment.getPatient().getAddress(),
-                        appointment.getAppointmentTime(),
-                        appointment.getStatus()
-                ))
-                .collect(Collectors.toList());
-    }
-
-    public List<AppointmentDTO> filterByDoctor(Long patientId, String doctorName) {
-        List<Appointment> appointments = appointmentRepository.filterByDoctorNameAndPatientId(doctorName, patientId);
-        return appointments.stream()
-                .map(appointment -> new AppointmentDTO(
-                        appointment.getId(),
-                        appointment.getDoctor().getId(),
-                        appointment.getDoctor().getName(),
-                        appointment.getPatient().getId(),
-                        appointment.getPatient().getName(),
-                        appointment.getPatient().getEmail(),
-                        appointment.getPatient().getPhone(),
-                        appointment.getPatient().getAddress(),
-                        appointment.getAppointmentTime(),
-                        appointment.getStatus()
-                ))
-                .collect(Collectors.toList());
-    }
-
-    public List<AppointmentDTO> filterByDoctorAndCondition(Long patientId, String doctorName, String condition) {
-        List<Appointment> appointments;
-        if ("past".equalsIgnoreCase(condition)) {
-            appointments = appointmentRepository.filterByDoctorNameAndPatientIdAndStatus(doctorName, patientId, 1);
-        } else if ("future".equalsIgnoreCase(condition)) {
-            appointments = appointmentRepository.filterByDoctorNameAndPatientIdAndStatus(doctorName, patientId, 0);
-        } else {
-            throw new IllegalArgumentException("Invalid condition: " + condition);
-        }
-
-        return appointments.stream()
-                .map(appointment -> new AppointmentDTO(
-                        appointment.getId(),
-                        appointment.getDoctor().getId(),
-                        appointment.getDoctor().getName(),
-                        appointment.getPatient().getId(),
-                        appointment.getPatient().getName(),
-                        appointment.getPatient().getEmail(),
-                        appointment.getPatient().getPhone(),
-                        appointment.getPatient().getAddress(),
-                        appointment.getAppointmentTime(),
-                        appointment.getStatus()
-                ))
-                .collect(Collectors.toList());
-    }
-
-    public Patient getPatientDetails(String token) {
-        // Extract the email from the token
+    @Transactional
+    public ResponseEntity<Map<String, Object>> getPatientAppointment(Long id, String token) {
         String email = tokenService.extractEmail(token);
-        if (email == null) {
-            throw new IllegalArgumentException("Invalid token");
-        }
-
-        // Fetch the patient details using the email
         Patient patient = patientRepository.findByEmail(email);
-        if (patient == null) {
-            throw new IllegalArgumentException("Patient not found");
+        if (patient == null || !patient.getId().equals(id)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Unauthorized access"));
         }
 
-        return patient;
+        List<Appointment> appointments = appointmentRepository.findByPatientId(id);
+        List<AppointmentDTO> appointmentDTOs = appointments.stream()
+                .map(appointment -> new AppointmentDTO(
+                        appointment.getId(),
+                        appointment.getDoctor().getId(),
+                        appointment.getDoctor().getName(),
+                        appointment.getPatient().getId(),
+                        appointment.getPatient().getName(),
+                        appointment.getPatient().getEmail(),
+                        appointment.getPatient().getPhone(),
+                        appointment.getPatient().getAddress(),
+                        appointment.getAppointmentTime(),
+                        appointment.getStatus()
+                ))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(Map.of("appointments", appointmentDTOs));
     }
+
+    public ResponseEntity<Map<String, Object>> filterByCondition(String condition, Long id) {
+        List<Appointment> appointments;
+        if ("past".equalsIgnoreCase(condition)) {
+            appointments = appointmentRepository.findByPatient_IdAndStatusOrderByAppointmentTimeAsc(id, 1);
+        } else if ("future".equalsIgnoreCase(condition)) {
+            appointments = appointmentRepository.findByPatient_IdAndStatusOrderByAppointmentTimeAsc(id, 0);
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Invalid condition"));
+        }
+
+        List<AppointmentDTO> appointmentDTOs = appointments.stream()
+                .map(appointment -> new AppointmentDTO(
+                        appointment.getId(),
+                        appointment.getDoctor().getId(),
+                        appointment.getDoctor().getName(),
+                        appointment.getPatient().getId(),
+                        appointment.getPatient().getName(),
+                        appointment.getPatient().getEmail(),
+                        appointment.getPatient().getPhone(),
+                        appointment.getPatient().getAddress(),
+                        appointment.getAppointmentTime(),
+                        appointment.getStatus()
+                ))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(Map.of("appointments", appointmentDTOs));
+    }
+
+    public ResponseEntity<Map<String, Object>> filterByDoctor(String name, Long patientId) {
+    List<Appointment> appointments = appointmentRepository.findByPatientId(patientId).stream()
+            .filter(appointment -> appointment.getDoctor() != null
+                    && appointment.getDoctor().getName() != null
+                    && appointment.getDoctor().getName().toLowerCase().contains(name.toLowerCase()))
+            .collect(Collectors.toList());
+
+    if (appointments.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", "No appointments found for doctor: " + name));
+    }
+
+    List<AppointmentDTO> appointmentDTOs = appointments.stream()
+            .map(appointment -> new AppointmentDTO(
+                    appointment.getId(),
+                    appointment.getDoctor().getId(),
+                    appointment.getDoctor().getName(),
+                    appointment.getPatient().getId(),
+                    appointment.getPatient().getName(),
+                    appointment.getPatient().getEmail(),
+                    appointment.getPatient().getPhone(),
+                    appointment.getPatient().getAddress(),
+                    appointment.getAppointmentTime(),
+                    appointment.getStatus()
+            ))
+            .collect(Collectors.toList());
+
+    return ResponseEntity.ok(Map.of("appointments", appointmentDTOs));
+}
+    public ResponseEntity<Map<String, Object>> filterByDoctorAndCondition(String condition, String name, Long patientId) {
+    List<Appointment> appointments = appointmentRepository.findByPatientId(patientId).stream()
+            .filter(appointment -> appointment.getDoctor() != null
+                    && appointment.getDoctor().getName() != null
+                    && appointment.getDoctor().getName().toLowerCase().contains(name.toLowerCase()))
+            .filter(appointment -> {
+                if ("past".equalsIgnoreCase(condition)) {
+                    return appointment.getStatus() == 1;
+                } else if ("future".equalsIgnoreCase(condition)) {
+                    return appointment.getStatus() == 0;
+                }
+                return false;
+            })
+            .collect(Collectors.toList());
+
+    if (appointments.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", "No appointments found for doctor: " + name + " with condition: " + condition));
+    }
+
+    List<AppointmentDTO> appointmentDTOs = appointments.stream()
+            .map(appointment -> new AppointmentDTO(
+                    appointment.getId(),
+                    appointment.getDoctor().getId(),
+                    appointment.getDoctor().getName(),
+                    appointment.getPatient().getId(),
+                    appointment.getPatient().getName(),
+                    appointment.getPatient().getEmail(),
+                    appointment.getPatient().getPhone(),
+                    appointment.getPatient().getAddress(),
+                    appointment.getAppointmentTime(),
+                    appointment.getStatus()
+            ))
+            .collect(Collectors.toList());
+
+    return ResponseEntity.ok(Map.of("appointments", appointmentDTOs));
+}
+
+    public ResponseEntity<Map<String, Object>> getPatientDetails(String token) {
+    String email = tokenService.extractEmail(token);
+    Patient patient = patientRepository.findByEmail(email);
+
+    if (patient == null) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("error", "Unauthorized access"));
+    }
+
+    Map<String, Object> patientDetails = new HashMap<>();
+    patientDetails.put("id", patient.getId());
+    patientDetails.put("name", patient.getName());
+    patientDetails.put("email", patient.getEmail());
+    patientDetails.put("phone", patient.getPhone());
+    patientDetails.put("address", patient.getAddress());
+
+    return ResponseEntity.ok(Map.of("patient", patientDetails));
+}
+
 // 1. **Add @Service Annotation**:
 //    - The `@Service` annotation is used to mark this class as a Spring service component. 
 //    - It will be managed by Spring's container and used for business logic related to patients and appointments.

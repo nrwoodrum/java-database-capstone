@@ -14,12 +14,12 @@
     <script src = "../js/components/footer.js" defer></script>
     <script type = "module" src = "../js/loggedPatient.js" defer></script>
 </head>
-<body onload="renderContent()">
+<body>
     <div class="container">
         <div class="wrapper">
             <div id="header"></div>
             <main class="main-content">
-                <input type="text" id="searchBar" class="searchBar" placeholder="Search Bar for custom output" />
+                <input type="text" id="searchBar" class="searchBar" placeholder="Search Bar" aria-label="Search Bar" />
                 <div class="filter-wrapper">
                     <select class="filter-select" id="filterTime">
                         <option value="">Sort by Time</option>
