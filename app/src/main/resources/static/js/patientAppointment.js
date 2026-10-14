@@ -1,11 +1,10 @@
 // patientAppointment.js
-import { getPatientAppointments, getPatientData, filterAppointments } from "./services/patientServices.js";
+import { getPatientAppointments, getPatientData } from "./services/patientServices.js";
 
 let tableBody = null;
 const token = localStorage.getItem("token");
 
 let allAppointments = [];
-let filteredAppointments = [];
 let patientId = null;
 
 document.addEventListener("DOMContentLoaded", initializePage);
@@ -29,7 +28,7 @@ async function initializePage() {
     const appointmentData = await getPatientAppointments(patientId, token, "patient") || [];
     allAppointments = appointmentData.filter(app => app.patientId === patientId);
 
-    renderAppointments(allAppointments);
+    handleFilterChange();
   } catch (error) {
     console.error("Error loading appointments:", error);
     alert("❌ Failed to load your appointments.");
@@ -93,7 +92,7 @@ function redirectToUpdatePage(appointment) {
 }
 
 
-async function handleFilterChange() {
+function handleFilterChange() {
   const searchBar = document.getElementById("searchBar");
   const appointmentFilter = document.getElementById("appointmentFilter");
 
@@ -101,21 +100,17 @@ async function handleFilterChange() {
     return;
   }
 
-  const searchBarValue = searchBar.value.trim();
+  const searchBarValue = searchBar.value.trim().toLowerCase();
   const filterValue = appointmentFilter.value;
 
-  const name = searchBarValue || null;
-  const condition = filterValue === "allAppointments" ? null : filterValue || null;
+  const appointments = allAppointments.filter(appointment => {
+    const matchesName = (appointment.doctorName || "").toLowerCase().includes(searchBarValue);
+    const matchesStatus = filterValue === "future" ? Number(appointment.status) === 0
+      : filterValue === "past" ? Number(appointment.status) === 1
+      : true;
+    return matchesName && matchesStatus;
+  });
 
-  try {
-    const response = await filterAppointments(condition, name, token);
-    const appointments = response?.appointments || [];
-    filteredAppointments = appointments.filter(app => app.patientId === patientId);
-
-    renderAppointments(filteredAppointments);
-  } catch (error) {
-    console.error("Failed to filter appointments:", error);
-    alert("❌ An error occurred while filtering appointments.");
-  }
+  renderAppointments(appointments);
 }
 

@@ -53,7 +53,7 @@ nav {
 }
 
 nav a,
-.adminBtn {
+nav .adminBtn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -73,7 +73,7 @@ nav a,
 }
 
 nav a:hover,
-.adminBtn:hover {
+nav .adminBtn:hover {
   color: #0f3b3b;
   background: rgba(255, 255, 255, 0.22);
   border-color: rgba(19, 58, 59, 0.2);

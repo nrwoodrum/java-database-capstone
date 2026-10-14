@@ -17,8 +17,15 @@ export async function deleteDoctor(doctorId, token) {
     const response = await fetch(`${DOCTOR_API}/${doctorId}/${token}`, {
       method: 'DELETE',
     });
-    const data = await response.json();
-    return { success: data.success, message: data.message };
+    const text = await response.text();
+    let message = text;
+    try {
+      const data = text ? JSON.parse(text) : null;
+      message = typeof data === 'string' ? data : data?.message || data?.error || text;
+    } catch {
+      // The doctor deletion endpoint returns plain text.
+    }
+    return { success: response.ok, message: message || (response.ok ? 'Doctor deleted successfully' : 'Failed to delete doctor') };
   } catch (error) {
     console.error("Error deleting doctor:", error);
     return { success: false, message: "An error occurred while deleting the doctor." };
@@ -32,8 +39,15 @@ export async function saveDoctor(doctor, token) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(doctor),
     });
-    const data = await response.json();
-    return { success: data.success, message: data.message };
+    const text = await response.text();
+    let message = text;
+    try {
+      const data = text ? JSON.parse(text) : null;
+      message = typeof data === 'string' ? data : data?.message || data?.error || text;
+    } catch {
+      // The doctor creation endpoint returns plain text.
+    }
+    return { success: response.ok, message: message || (response.ok ? 'Doctor added successfully' : 'Failed to add doctor') };
   } catch (error) {
     console.error("Error saving doctor:", error);
     return { success: false, message: "An error occurred while saving the doctor." };

@@ -2,12 +2,10 @@ import { getDoctors, filterDoctors, saveDoctor } from './services/doctorServices
 import { createDoctorCard } from './components/doctorCard.js';
 import { openModal } from './components/modals.js';
 
-function setupAdminDashboard() {
-  const addDoctorButton = document.getElementById('addDoctorBtn');
-  if (addDoctorButton) {
-    addDoctorButton.addEventListener('click', () => openModal('addDoctor'));
-  }
+// The shared header calls the modal through the window scope.
+window.openModal = openModal;
 
+function setupAdminDashboard() {
   const searchBar = document.getElementById('searchBar');
   const timeFilter = document.getElementById('timeFilter');
   const specialtyFilter = document.getElementById('specialtyFilter');

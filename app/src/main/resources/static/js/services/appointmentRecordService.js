@@ -2,6 +2,22 @@
 import { API_BASE_URL } from "../config/config.js";
 const APPOINTMENT_API = `${API_BASE_URL}/appointments`;
 
+async function readAppointmentResponse(response) {
+  const text = await response.text();
+  let message = text;
+  try {
+    const data = text ? JSON.parse(text) : null;
+    message = typeof data === "string" ? data : data?.message || data?.error || text;
+  } catch {
+    // The appointment endpoints return plain text for success and failure.
+  }
+
+  return {
+    success: response.ok,
+    message: message || (response.ok ? "Appointment saved successfully" : "Failed to save appointment")
+  };
+}
+
 // This is for the doctor to fetch appointments for a specific doctor on a date.
 export async function getAllAppointments(doctorId, date, patientName, token) {
   const safePatientName = patientName && patientName !== 'null' ? encodeURIComponent(patientName) : 'all';
@@ -24,11 +40,7 @@ export async function bookAppointment(appointment, token) {
       body: JSON.stringify(appointment)
     });
 
-    const data = await response.json();
-    return {
-      success: response.ok,
-      message: data.message || "Something went wrong"
-    };
+    return await readAppointmentResponse(response);
   } catch (error) {
     console.error("Error while booking appointment:", error);
     return {
@@ -39,8 +51,12 @@ export async function bookAppointment(appointment, token) {
 }
 
 export async function updateAppointment(appointment, token) {
+  if (!appointment?.id) {
+    return { success: false, message: "Appointment ID is missing. Please reopen the appointment from My Appointments." };
+  }
+
   try {
-    const response = await fetch(`${APPOINTMENT_API}/${token}`, {
+    const response = await fetch(`${APPOINTMENT_API}/${encodeURIComponent(appointment.id)}/${token}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json"
@@ -48,13 +64,9 @@ export async function updateAppointment(appointment, token) {
       body: JSON.stringify(appointment)
     });
 
-    const data = await response.json();
-    return {
-      success: response.ok,
-      message: data.message || "Something went wrong"
-    };
+    return await readAppointmentResponse(response);
   } catch (error) {
-    console.error("Error while booking appointment:", error);
+    console.error("Error while updating appointment:", error);
     return {
       success: false,
       message: "Network error. Please try again later."

@@ -75,6 +75,22 @@ function buildPatientRow(appointment) {
     <td>${statusBadge(appointment.status)}</td>
   `;
 
+  const actions = document.createElement('td');
+  const button = document.createElement('button');
+  const completed = Number(appointment.status) === 1;
+  button.type = 'button';
+  button.className = 'prescription-action';
+  button.textContent = completed ? 'View Prescription' : 'Add Prescription';
+  button.addEventListener('click', () => {
+    const params = new URLSearchParams({
+      appointmentId: appointment.id,
+      patientName: patient.name ?? appointment.patientName ?? '',
+      mode: completed ? 'view' : 'add'
+    });
+    window.location.href = `/pages/addPrescription.html?${params}`;
+  });
+  actions.appendChild(button);
+  row.appendChild(actions);
   return row;
 }
 
@@ -84,18 +100,18 @@ async function loadAppointments() {
   const doctorId = getDoctorIdFromToken();
   if (!doctorId || !token) {
     renderDoctorSummary([]);
-    tableBody.innerHTML = '<tr><td colspan="5" class="empty-state">Doctor session is invalid. Please log in again.</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="6" class="empty-state">Doctor session is invalid. Please log in again.</td></tr>';
     return;
   }
 
   try {
-    tableBody.innerHTML = '<tr><td colspan="5" class="empty-state">Loading appointments…</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="6" class="empty-state">Loading appointments…</td></tr>';
     const appointments = await getAllAppointments(doctorId, selectedDate, patientName, token);
     renderDoctorSummary(appointments);
     tableBody.innerHTML = '';
 
     if (!appointments || appointments.length === 0) {
-      tableBody.innerHTML = '<tr><td colspan="5" class="empty-state">No appointments found for this date.</td></tr>';
+      tableBody.innerHTML = '<tr><td colspan="6" class="empty-state">No appointments found for this date.</td></tr>';
       return;
     }
 
@@ -105,7 +121,7 @@ async function loadAppointments() {
   } catch (error) {
     console.error('Error loading appointments:', error);
     renderDoctorSummary([]);
-    tableBody.innerHTML = '<tr><td colspan="5" class="empty-state">Error loading appointments. Try again later.</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="6" class="empty-state">Error loading appointments. Try again later.</td></tr>';
   }
 }
 

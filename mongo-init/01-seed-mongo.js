@@ -1,4 +1,4 @@
-use prescriptions;
+db = db.getSiblingDB(process.env.MONGO_APP_DATABASE || 'prescriptions');
 
 db.prescriptions.insertMany([
   {

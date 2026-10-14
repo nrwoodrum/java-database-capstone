@@ -49,7 +49,7 @@ function renderHeader() {
     `;
   } else if (role === "doctor") {
     headerContent += `
-      <button class="adminBtn" type="button" onclick="window.location.href='/doctorDashboard.html'">Home</button>
+      <button class="adminBtn" type="button" id="doctorHome">Home</button>
       <a href="#" onclick="logout()">Logout</a>
     `;
   } else if (role === "patient") {
@@ -75,6 +75,12 @@ function renderHeader() {
 }
 
 function attachHeaderButtonListeners() {
+  const doctorHomeBtn = document.getElementById("doctorHome");
+  if (doctorHomeBtn) {
+    doctorHomeBtn.addEventListener("click", () => {
+      window.location.href = `/doctorDashboard/${encodeURIComponent(localStorage.getItem("token"))}`;
+    });
+  }
   const addDocBtn = document.getElementById("addDocBtn");
   const patientLoginBtn = document.getElementById("patientLogin");
   const patientSignupBtn = document.getElementById("patientSignup");

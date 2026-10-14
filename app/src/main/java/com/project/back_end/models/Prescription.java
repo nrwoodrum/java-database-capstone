@@ -1,6 +1,8 @@
 package com.project.back_end.models;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
 import org.springframework.data.annotation.Id;
@@ -16,24 +18,25 @@ public class Prescription {
 
   // 2. Name of the patient receiving the prescription.
   // Required and must contain between 3 and 100 characters.
-  @NotNull(message = "Patient name cannot be null")
+  @NotBlank(message = "Patient name cannot be blank")
   @Size(min = 3, max = 100, message = "Patient name must be between 3 and 100 characters")
   private String patientName;
 
   // 3. ID of the appointment associated with the prescription.
   // Required when creating a prescription.
   @NotNull(message = "Appointment ID cannot be null")
+  @Positive(message = "Appointment ID must be positive")
   private Long appointmentId;
 
   // 4. Medication prescribed to the patient.
   // Required and must contain between 3 and 100 characters.
-  @NotNull(message = "Medication cannot be null")
+  @NotBlank(message = "Medication cannot be blank")
   @Size(min = 3, max = 100, message = "Medication must be between 3 and 100 characters")
   private String medication;
 
   // 5. Dosage information for the medication.
   // Required when creating a prescription.
-  @NotNull(message = "Dosage cannot be null")
+  @NotBlank(message = "Dosage cannot be blank")
   private String dosage;
 
   // 6. Additional notes or instructions from the doctor.

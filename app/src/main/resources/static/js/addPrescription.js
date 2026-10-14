@@ -1,80 +1,66 @@
-import { savePrescription, getPrescription } from "./services/prescriptionServices.js";
+import { savePrescription, getPrescription } from './services/prescriptionServices.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const savePrescriptionBtn = document.getElementById("savePrescription");
-  const patientNameInput = document.getElementById("patientName");
-  const medicinesInput = document.getElementById("medicines");
-  const dosageInput = document.getElementById("dosage");
-  const notesInput = document.getElementById("notes");
-  const heading = document.getElementById("heading")
-
-
-  const urlParams = new URLSearchParams(window.location.search);
-  const appointmentId = urlParams.get("appointmentId");
-  const mode = urlParams.get("mode");
-  const token = localStorage.getItem("token");
-  const patientName = urlParams.get("patientName")
-
-  if (heading) {
-    if (mode === "view") {
-      heading.innerHTML = `View <span>Prescription</span>`;
-    } else {
-      heading.innerHTML = `Add <span>Prescription</span>`;
+  if (!requireRole('doctor')) return;
+  const form = document.getElementById('prescriptionForm');
+  const saveButton = document.getElementById('savePrescription');
+  const patientName = document.getElementById('patientName');
+  const medication = document.getElementById('medicines');
+  const dosage = document.getElementById('dosage');
+  const notes = document.getElementById('notes');
+  const params = new URLSearchParams(window.location.search);
+  const appointmentId = Number(params.get('appointmentId'));
+  const token = localStorage.getItem('token');
+  if (!Number.isSafeInteger(appointmentId) || appointmentId <= 0) {
+    alert('Appointment ID is missing or invalid.');
+    window.location.href = `/doctorDashboard/${encodeURIComponent(token)}`;
+    return;
+  }
+  patientName.value = params.get('patientName') || '';
+  saveButton.disabled = true;
+  let viewOnly = params.get('mode') === 'view';
+  try {
+    const response = await getPrescription(appointmentId, token);
+    const existing = response.prescriptions?.[0];
+    if (existing) {
+      patientName.value = existing.patientName || 'You';
+      medication.value = existing.medication || '';
+      dosage.value = existing.dosage || '';
+      notes.value = existing.doctorNotes || '';
+      viewOnly = true;
+    } else if (viewOnly) {
+      alert('No prescription has been added for this appointment.');
     }
+  } catch (error) {
+    alert('Failed to load prescription: ' + error.message);
+    return;
   }
-
-
-  // Pre-fill patient name
-  if (patientNameInput && patientName) {
-    patientNameInput.value = patientName;
+  document.getElementById('heading').textContent = viewOnly ? 'View Prescription' : 'Add Prescription';
+  if (viewOnly) {
+    medication.disabled = dosage.disabled = notes.disabled = true;
+    saveButton.style.display = 'none';
+  } else {
+    saveButton.disabled = false;
   }
-
-  // Fetch and pre-fill existing prescription if it exists
-  if (appointmentId && token) {
-    try {
-      const response = await getPrescription(appointmentId, token);
-      console.log("getPrescription :: ", response);
-
-      // Now, check if the prescription exists in the response and access it from the array
-      if (response.prescription && response.prescription.length > 0) {
-        const existingPrescription = response.prescription[0]; // Access first prescription object
-        patientNameInput.value = existingPrescription.patientName || YOU;
-        medicinesInput.value = existingPrescription.medication || "";
-        dosageInput.value = existingPrescription.dosage || "";
-        notesInput.value = existingPrescription.doctorNotes || "";
-      }
-
-    } catch (error) {
-      console.warn("No existing prescription found or failed to load:", error);
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (viewOnly || saveButton.disabled) return;
+    if (!medication.value.trim() || !dosage.value.trim()) {
+      alert('Please enter medication and dosage instructions.');
+      return;
     }
-  }
-  if (mode === 'view') {
-    // Make fields read-only
-    patientNameInput.disabled = true;
-    medicinesInput.disabled = true;
-    dosageInput.disabled = true;
-    notesInput.disabled = true;
-    savePrescriptionBtn.style.display = "none";  // Hide the save button
-  }
-  // Save prescription on button click
-  savePrescriptionBtn.addEventListener('click', async (e) => {
-    e.preventDefault();
-
-    const prescription = {
-      patientName: patientNameInput.value,
-      medication: medicinesInput.value,
-      dosage: dosageInput.value,
-      doctorNotes: notesInput.value,
-      appointmentId
-    };
-
-    const { success, message } = await savePrescription(prescription, token);
-
-    if (success) {
-      alert("✅ Prescription saved successfully.");
-      selectRole('doctor');
+    saveButton.disabled = true;
+    const result = await savePrescription({
+      patientName: patientName.value,
+      medication: medication.value.trim(), dosage: dosage.value.trim(),
+      doctorNotes: notes.value.trim(), appointmentId
+    }, token);
+    if (result.success) {
+      alert('Prescription saved successfully.');
+      window.location.href = `/doctorDashboard/${encodeURIComponent(token)}`;
     } else {
-      alert("❌ Failed to save prescription. " + message);
+      alert('Failed to save prescription: ' + result.message);
+      saveButton.disabled = false;
     }
   });
 });

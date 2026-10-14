@@ -41,7 +41,7 @@ public class PatientController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Patient not found");
         }
 
-        return ResponseEntity.ok(patient);
+        return patient;
     }
 @PostMapping
     public ResponseEntity<?> createPatient(@RequestBody @Valid Patient patient) {
