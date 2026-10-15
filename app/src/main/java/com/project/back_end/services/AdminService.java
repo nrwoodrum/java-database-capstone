@@ -1,21 +1,18 @@
 package com.project.back_end.services;
 
-
-import java.time.LocalTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-
 import com.project.back_end.models.Admin;
 import com.project.back_end.models.Appointment;
 import com.project.back_end.models.Patient;
 import com.project.back_end.repo.AdminRepository;
 import com.project.back_end.repo.DoctorRepository;
 import com.project.back_end.repo.PatientRepository;
+import java.time.LocalTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 
 @Service
 public class AdminService {
@@ -26,8 +23,13 @@ public class AdminService {
     private final DoctorService doctorService;
     private final PatientService patientService;
 
-    public AdminService(TokenService tokenService, AdminRepository adminRepository, DoctorRepository doctorRepository,
-            PatientRepository patientRepository, DoctorService doctorService, PatientService patientService) {
+    public AdminService(
+            TokenService tokenService,
+            AdminRepository adminRepository,
+            DoctorRepository doctorRepository,
+            PatientRepository patientRepository,
+            DoctorService doctorService,
+            PatientService patientService) {
         this.tokenService = tokenService;
         this.adminRepository = adminRepository;
         this.doctorRepository = doctorRepository;
@@ -73,7 +75,8 @@ public class AdminService {
             time = "";
         }
 
-        Map<String, Object> doctors = doctorService.filterDoctorsByNameSpecialtyAndTime(name, speciality, time);
+        Map<String, Object> doctors =
+                doctorService.filterDoctorsByNameSpecialtyAndTime(name, speciality, time);
 
         response.put("doctors", doctors.getOrDefault("doctors", List.of()));
         return response;
@@ -90,9 +93,9 @@ public class AdminService {
             return -1;
         }
 
-        List<LocalTime> availableTimes = doctorService.getDoctorAvailability(
-                doctorId,
-                appointment.getAppointmentTime().toLocalDate());
+        List<LocalTime> availableTimes =
+                doctorService.getDoctorAvailability(
+                        doctorId, appointment.getAppointmentTime().toLocalDate());
 
         if (availableTimes.contains(appointment.getAppointmentTime().toLocalTime())) {
             return 1;
@@ -124,7 +127,8 @@ public class AdminService {
         return ResponseEntity.ok(response);
     }
 
-    public ResponseEntity<Map<String, Object>> filterPatient(String condition, String name, String token) {
+    public ResponseEntity<Map<String, Object>> filterPatient(
+            String condition, String name, String token) {
         String email = tokenService.extractEmail(token);
         Patient patient = patientRepository.findByEmail(email);
 
@@ -148,8 +152,6 @@ public class AdminService {
         return patientService.getPatientAppointment(patient.getId(), token);
     }
 }
-    
-
 
 // 1. **@Service Annotation**
 // The @Service annotation marks this class as a service component in Spring.

@@ -11,7 +11,6 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,21 +26,13 @@ public class Doctor {
     // 2. Doctor's name.
     //    Required and must contain between 3 and 100 characters.
     @NotNull(message = "Doctor name cannot be null")
-    @Size(
-        min = 3,
-        max = 100,
-        message = "Doctor name must be between 3 and 100 characters"
-    )
+    @Size(min = 3, max = 100, message = "Doctor name must be between 3 and 100 characters")
     private String name;
 
     // 3. Doctor's medical specialty.
     //    Required and must contain between 3 and 50 characters.
     @NotNull(message = "Specialty cannot be null")
-    @Size(
-        min = 3,
-        max = 50,
-        message = "Specialty must be between 3 and 50 characters"
-    )
+    @Size(min = 3, max = 50, message = "Specialty must be between 3 and 50 characters")
     private String specialty;
 
     // 4. Doctor's email address.
@@ -54,20 +45,14 @@ public class Doctor {
     //    Required and must contain at least 6 characters.
     //    WRITE_ONLY prevents the password from appearing in JSON responses.
     @NotNull(message = "Password cannot be null")
-    @Size(
-        min = 6,
-        message = "Password must be at least 6 characters long"
-    )
+    @Size(min = 6, message = "Password must be at least 6 characters long")
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
     // 6. Doctor's phone number.
     //    Required and must contain exactly 10 digits.
     @NotNull(message = "Phone number cannot be null")
-    @Pattern(
-        regexp = "^[0-9]{10}$",
-        message = "Phone number must contain exactly 10 digits"
-    )
+    @Pattern(regexp = "^[0-9]{10}$", message = "Phone number must contain exactly 10 digits")
     private String phone;
 
     // 7. Doctor's available appointment time slots.
@@ -78,8 +63,7 @@ public class Doctor {
     private List<String> availableTimes = new ArrayList<>();
 
     // No-argument constructor required by JPA.
-    public Doctor() {
-    }
+    public Doctor() {}
 
     // Parameterized constructor.
     public Doctor(
@@ -88,8 +72,7 @@ public class Doctor {
             String email,
             String password,
             String phone,
-            List<String> availableTimes
-    ) {
+            List<String> availableTimes) {
         this.name = name;
         this.specialty = specialty;
         this.email = email;

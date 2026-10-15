@@ -52,16 +52,10 @@ public class Patient {
     private String address;
 
     // No-argument constructor required by JPA.
-    public Patient() {
-    }
+    public Patient() {}
 
     // Parameterized constructor.
-    public Patient(
-            String name,
-            String email,
-            String password,
-            String phone,
-            String address) {
+    public Patient(String name, String email, String password, String phone, String address) {
         this.name = name;
         this.email = email;
         this.password = password;

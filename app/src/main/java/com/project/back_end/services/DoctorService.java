@@ -1,17 +1,10 @@
 package com.project.back_end.services;
 
-import org.springframework.transaction.annotation.Transactional;
-
 import com.project.back_end.DTO.Login;
 import com.project.back_end.models.Appointment;
 import com.project.back_end.models.Doctor;
 import com.project.back_end.repo.AppointmentRepository;
 import com.project.back_end.repo.DoctorRepository;
-
-
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -19,6 +12,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class DoctorService {
@@ -26,7 +23,9 @@ public class DoctorService {
     private final AppointmentRepository appointmentRepository;
     private final TokenService tokenService;
 
-    public DoctorService(DoctorRepository doctorRepository, AppointmentRepository appointmentRepository,
+    public DoctorService(
+            DoctorRepository doctorRepository,
+            AppointmentRepository appointmentRepository,
             TokenService tokenService) {
         this.doctorRepository = doctorRepository;
         this.appointmentRepository = appointmentRepository;
@@ -47,8 +46,9 @@ public class DoctorService {
         // Fetch appointments for the doctor on the given date
         LocalDateTime startOfDay = date.atStartOfDay();
         LocalDateTime endOfDay = date.atTime(23, 59);
-        List<Appointment> appointments = appointmentRepository.findByDoctorIdAndAppointmentTimeBetween(doctorId,
-                startOfDay, endOfDay);
+        List<Appointment> appointments =
+                appointmentRepository.findByDoctorIdAndAppointmentTimeBetween(
+                        doctorId, startOfDay, endOfDay);
 
         // Remove booked times from available times
         for (Appointment appointment : appointments) {
@@ -113,7 +113,9 @@ public class DoctorService {
             response.put("error", "Invalid password");
             return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
         }
-        String token = tokenService.generateToken(String.valueOf(doctor.getId()), "doctor", doctor.getEmail());
+        String token =
+                tokenService.generateToken(
+                        String.valueOf(doctor.getId()), "doctor", doctor.getEmail());
         response.put("token", token);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
@@ -128,18 +130,35 @@ public class DoctorService {
         return result;
     }
 
-    public Map<String, Object> filterDoctorsByNameSpecialtyAndTime(String name, String specialty, String amOrPm) {
-        String normalizedName = (name == null || name.equalsIgnoreCase("null") || name.isBlank()) ? "" : name.trim();
-        String normalizedSpecialty = (specialty == null || specialty.equalsIgnoreCase("null") || specialty.isBlank()) ? "" : specialty.trim();
-        String normalizedTime = (amOrPm == null || amOrPm.equalsIgnoreCase("null") || amOrPm.isBlank()) ? "" : amOrPm.trim();
+    public Map<String, Object> filterDoctorsByNameSpecialtyAndTime(
+            String name, String specialty, String amOrPm) {
+        String normalizedName =
+                (name == null || name.equalsIgnoreCase("null") || name.isBlank())
+                        ? ""
+                        : name.trim();
+        String normalizedSpecialty =
+                (specialty == null || specialty.equalsIgnoreCase("null") || specialty.isBlank())
+                        ? ""
+                        : specialty.trim();
+        String normalizedTime =
+                (amOrPm == null || amOrPm.equalsIgnoreCase("null") || amOrPm.isBlank())
+                        ? ""
+                        : amOrPm.trim();
 
         List<Doctor> allDoctors = doctorRepository.findAll();
         List<Doctor> filteredDoctors = new ArrayList<>();
 
         for (Doctor doctor : allDoctors) {
-            boolean matchesName = normalizedName.isEmpty() || doctor.getName().toLowerCase().contains(normalizedName.toLowerCase());
-            boolean matchesSpecialty = normalizedSpecialty.isEmpty() || doctor.getSpecialty().equalsIgnoreCase(normalizedSpecialty);
-            boolean matchesTime = normalizedTime.isEmpty() || hasAvailableTimeInRange(doctor, normalizedTime);
+            boolean matchesName =
+                    normalizedName.isEmpty()
+                            || doctor.getName()
+                                    .toLowerCase()
+                                    .contains(normalizedName.toLowerCase());
+            boolean matchesSpecialty =
+                    normalizedSpecialty.isEmpty()
+                            || doctor.getSpecialty().equalsIgnoreCase(normalizedSpecialty);
+            boolean matchesTime =
+                    normalizedTime.isEmpty() || hasAvailableTimeInRange(doctor, normalizedTime);
 
             if (matchesName && matchesSpecialty && matchesTime) {
                 filteredDoctors.add(doctor);
@@ -195,7 +214,9 @@ public class DoctorService {
     }
 
     public Map<String, Object> filterDoctorByNameAndSpecialty(String name, String specialty) {
-        List<Doctor> doctors = doctorRepository.findByNameContainingIgnoreCaseAndSpecialtyIgnoreCase(name, specialty);
+        List<Doctor> doctors =
+                doctorRepository.findByNameContainingIgnoreCaseAndSpecialtyIgnoreCase(
+                        name, specialty);
         Map<String, Object> result = new HashMap<>();
         for (Doctor doctor : doctors) {
             List<LocalTime> availableTimes = getDoctorAvailability(doctor.getId(), LocalDate.now());
@@ -225,8 +246,6 @@ public class DoctorService {
         return result;
     }
 
-    
-        
     // 1. **Add @Service Annotation**:
     // - This class should be annotated with `@Service` to indicate that it is a
     // service layer class.
@@ -355,4 +374,4 @@ public class DoctorService {
     // during the specified time period.
     // - Instruction: Ensure proper filtering logic to handle AM/PM time periods.
 
-    }
+}

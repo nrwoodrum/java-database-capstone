@@ -2,6 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
 
     <title>Admin Dashboard</title>
@@ -21,6 +22,7 @@
     <script defer th:src="@{/js/components/footer.js}"></script>
     <script defer th:src="@{/js/util.js}"></script>
     <script defer th:src="@{/js/render.js}"></script>
+    <link rel="stylesheet" th:href="@{/assets/css/doctorDirectory.css}">
 </head>
 
 <body>
@@ -28,7 +30,7 @@
         <div class="wrapper">
             <div id="header"></div>
 
-            <main class="main-content">
+            <main class="main-content doctor-directory">
                 <input type="text" id="searchBar" class="searchBar" placeholder="Search Bar" aria-label="Search Bar" />
 
                 <div class="filter-wrapper">
@@ -144,7 +146,7 @@ with search, filter, and modal functionality.
 
 13. Define the Main Section
 
-    * Use `<main class="main-content">` for the central dashboard area.
+    * Use `<main class="main-content doctor-directory">` for the central dashboard area.
 
 14. Add a Search Bar
 

@@ -35,7 +35,7 @@ This application is designed for a healthcare workflow where:
 Before running the project, make sure you have:
 
 - Java 17+
-- Maven
+- Maven is optional; the included Maven Wrapper downloads it automatically.
 - Docker and Docker Compose
 - Git
 
@@ -50,21 +50,32 @@ cd java-database-capstone
 
 ### 2. Configure environment variables
 
-The project reads configuration from a local `.env` file in the project root. A sample configuration is already present in the repository and is used by Docker Compose.
+Create a `.env` file in the project root **before starting Docker**. Docker Compose and the application read this file. You can copy the provided template:
 
 ```bash
-# required values used by docker-compose.yml
-MONGO_INITDB_ROOT_USERNAME=root
-MONGO_INITDB_ROOT_PASSWORD=your-root-password
-MONGO_APP_USERNAME=appuser
-MONGO_APP_PASSWORD=your-mongo-password
-MONGO_APP_DATABASE=prescriptions
+cp .env.example .env
+```
 
-MYSQL_ROOT_PASSWORD=rootpass
+Fill in these required keys with nonempty local passwords:
+
+```dotenv
+MONGO_INITDB_ROOT_PASSWORD=replace-with-your-mongo-root-password
+MONGO_APP_PASSWORD=replace-with-your-mongo-app-password
+MYSQL_ROOT_PASSWORD=replace-with-your-mysql-root-password
+MYSQL_PASSWORD=replace-with-your-mysql-app-password
+```
+
+These keys are optional; Compose uses the following defaults when omitted:
+
+```dotenv
+MONGO_INITDB_ROOT_USERNAME=root
+MONGO_APP_USERNAME=appuser
+MONGO_APP_DATABASE=prescriptions
 MYSQL_DATABASE=cms
 MYSQL_USER=clinicdb
-MYSQL_PASSWORD=clinicdb
 ```
+
+Keep `.env` local; it is ignored by Git. The committed `.env.example` contains no passwords. Database initialization runs only when Docker creates a new database volume; changing `.env` does not change credentials in existing databases.
 
 ### 3. Start the databases
 
@@ -122,7 +133,7 @@ MongoDB initialization scripts are located in:
 │   └── mvnw
 ├── mongo-init/
 ├── docker-compose.yml
-├── .env
+├── .env.example
 ├── README.md
 └── LICENSE
 ```
@@ -148,6 +159,46 @@ cd app
 ./mvnw clean spring-boot:run
 ```
 
+## Build, Tests, and Formatting
+
+From `app/`, build and run unit/controller tests without starting MySQL, MongoDB, or Docker:
+
+```bash
+./mvnw clean package
+```
+
+The wrapper and plugins need internet access for their first download. Java 17 is the source target. The pinned formatter requires JDK 17 or newer to run.
+
+Full Spring context and prescription database tests are opt-in integration tests (`*IT.java`). Configure `.env` and start the databases first, then run:
+
+```bash
+# From the project root:
+docker compose up -d --wait
+cd app
+./mvnw -Pintegration verify
+```
+
+This runs the unit tests, packages the application, and runs the integration tests through Maven Failsafe. The default build excludes integration tests by naming convention.
+
+Format Java sources and the POM, or check formatting:
+
+```bash
+# From app/:
+./mvnw spotless:apply
+./mvnw spotless:check
+```
+
+Formatting is also checked during Maven's `validate` phase. Commit the initial formatting changes separately from behavior changes when practical.
+
+Frontend regression checks require Node.js 18+ and no npm dependencies. From the project root:
+
+```bash
+node app/src/test/js/prescription.test.mjs
+node app/src/test/js/booking.test.mjs
+node app/src/test/js/patientPrescription.test.mjs
+node app/src/test/js/doctorTimeFilter.test.mjs
+```
+
 ## Notes
 
 - The app expects the database services to be running before Spring Boot starts.
@@ -156,4 +207,4 @@ cd app
 
 ## License
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+This project is licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for details.

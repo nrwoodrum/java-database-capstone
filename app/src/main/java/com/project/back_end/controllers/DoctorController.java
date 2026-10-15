@@ -1,9 +1,13 @@
 package com.project.back_end.controllers;
 
+import com.project.back_end.DTO.Login;
+import com.project.back_end.models.Doctor;
+import com.project.back_end.services.AdminService;
+import com.project.back_end.services.DoctorService;
+import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -15,13 +19,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.project.back_end.DTO.Login;
-import com.project.back_end.models.Doctor;
-import com.project.back_end.services.AdminService;
-import com.project.back_end.services.DoctorService;
-
-import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping({"/doctor", "/doctor/"})
@@ -36,8 +33,11 @@ public class DoctorController {
     }
 
     @GetMapping("/availability/{user}/{doctorId}/{date}/{token}")
-    public ResponseEntity<?> getDoctorAvailability(@PathVariable String user, @PathVariable Long doctorId,
-            @PathVariable String date, @PathVariable String token) {
+    public ResponseEntity<?> getDoctorAvailability(
+            @PathVariable String user,
+            @PathVariable Long doctorId,
+            @PathVariable String date,
+            @PathVariable String token) {
         if (!adminservice.validateToken(token, user)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
         }
@@ -53,7 +53,8 @@ public class DoctorController {
     }
 
     @PostMapping("/{token}")
-    public ResponseEntity<?> saveDoctor(@RequestBody @Valid Doctor doctor, @PathVariable String token) {
+    public ResponseEntity<?> saveDoctor(
+            @RequestBody @Valid Doctor doctor, @PathVariable String token) {
         if (!adminservice.validateToken(token, "admin")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized access");
         }
@@ -68,25 +69,26 @@ public class DoctorController {
 
     @PostMapping("/login")
     public ResponseEntity<?> doctorLogin(@RequestBody @Valid Login login) {
-    return doctorService.validateDoctor(login);
-}
+        return doctorService.validateDoctor(login);
+    }
 
     @PutMapping("/{token}")
-public ResponseEntity<?> updateDoctor(@RequestBody @Valid Doctor doctor, @PathVariable String token) {
-    if (!adminservice.validateToken(token, "admin")) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
-    }
+    public ResponseEntity<?> updateDoctor(
+            @RequestBody @Valid Doctor doctor, @PathVariable String token) {
+        if (!adminservice.validateToken(token, "admin")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
+        }
 
-    int result = doctorService.updateDoctor(doctor);
+        int result = doctorService.updateDoctor(doctor);
 
-    if (result == 1) {
-        return ResponseEntity.ok("Doctor updated successfully");
-    } else if (result == -1) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Doctor not found");
-    } else {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Update failed");
+        if (result == 1) {
+            return ResponseEntity.ok("Doctor updated successfully");
+        } else if (result == -1) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Doctor not found");
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Update failed");
+        }
     }
-}
 
     @DeleteMapping("/{id}/{token}")
     public ResponseEntity<?> deleteDoctor(@PathVariable Long id, @PathVariable String token) {
@@ -100,17 +102,19 @@ public ResponseEntity<?> updateDoctor(@RequestBody @Valid Doctor doctor, @PathVa
         } else if (result == -1) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Doctor not found");
         } else {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while deleting the doctor");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An error occurred while deleting the doctor");
         }
     }
 
     @GetMapping("/filter")
-public ResponseEntity<?> filterDoctors(@RequestParam(required = false) String name,
-                                       @RequestParam(required = false) String time,
-                                       @RequestParam(required = false) String specialty) {
-    Map<String, Object> filteredDoctors = adminservice.filterDoctor(name, specialty, time);
-    return ResponseEntity.ok(filteredDoctors);
-}
+    public ResponseEntity<?> filterDoctors(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String time,
+            @RequestParam(required = false) String specialty) {
+        Map<String, Object> filteredDoctors = adminservice.filterDoctor(name, specialty, time);
+        return ResponseEntity.ok(filteredDoctors);
+    }
     // 1. Set Up the Controller Class:
     // - Annotate the class with `@RestController` to define it as a REST controller
     // that serves JSON responses.

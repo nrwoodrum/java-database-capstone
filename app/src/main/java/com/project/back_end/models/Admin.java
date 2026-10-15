@@ -34,8 +34,7 @@ public class Admin {
     private String password;
 
     // 4. No-argument constructor required by JPA.
-    public Admin() {
-    }
+    public Admin() {}
 
     // Parameterized constructor.
     public Admin(String username, String password) {

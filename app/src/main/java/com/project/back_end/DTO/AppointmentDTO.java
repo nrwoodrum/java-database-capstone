@@ -1,4 +1,5 @@
 package com.project.back_end.DTO;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -17,12 +18,20 @@ public class AppointmentDTO {
     private LocalDate appointmentDate;
     private LocalTime appointmentTimeOnly;
     private LocalDateTime endTime;
-    public AppointmentDTO() {
-    }
 
-    public AppointmentDTO(Long id, Long doctorId, String doctorName, Long patientId, String patientName,
-                          String patientEmail, String patientPhone, String patientAddress,
-                          LocalDateTime appointmentTime, int status) {
+    public AppointmentDTO() {}
+
+    public AppointmentDTO(
+            Long id,
+            Long doctorId,
+            String doctorName,
+            Long patientId,
+            String patientName,
+            String patientEmail,
+            String patientPhone,
+            String patientAddress,
+            LocalDateTime appointmentTime,
+            int status) {
         this.id = id;
         this.doctorId = doctorId;
         this.doctorName = doctorName;

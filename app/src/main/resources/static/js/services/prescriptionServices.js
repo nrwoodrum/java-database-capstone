@@ -28,3 +28,10 @@ export async function getPrescription(appointmentId, token) {
   if (!response.ok) throw new Error(result.message || result.error || 'Unable to fetch prescription');
   return result;
 }
+
+export async function getPatientPrescription(appointmentId, token) {
+  const response = await fetch(`${PRESCRIPTION_API}/patient/${encodeURIComponent(appointmentId)}/${token}`);
+  const result = await readResponse(response);
+  if (!response.ok) throw new Error(result.message || result.error || 'Unable to fetch prescription');
+  return result;
+}

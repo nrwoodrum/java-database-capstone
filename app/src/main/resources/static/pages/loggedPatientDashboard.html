@@ -3,6 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/svg+xml" href="../assets/images/logo/logo.png" />
     <title>LoggedPatientDashboard</title>
     <link rel = "stylesheet" href = "../assets/css/adminDashboard.css">
@@ -13,16 +14,17 @@
     <script src = "../js/components/header.js" defer></script>
     <script src = "../js/components/footer.js" defer></script>
     <script type = "module" src = "../js/loggedPatient.js" defer></script>
+    <link rel="stylesheet" href="../assets/css/doctorDirectory.css">
 </head>
 <body>
     <div class="container">
         <div class="wrapper">
             <div id="header"></div>
-            <main class="main-content">
+            <main class="main-content doctor-directory">
                 <input type="text" id="searchBar" class="searchBar" placeholder="Search Bar" aria-label="Search Bar" />
                 <div class="filter-wrapper">
-                    <select class="filter-select" id="filterTime">
-                        <option value="">Sort by Time</option>
+                    <select class="filter-select" id="filterTime" aria-label="Filter doctors by time">
+                        <option value="">All Times</option>
                         <option value="AM">AM</option>
                         <option value="PM">PM</option>
                     </select>
@@ -44,6 +46,7 @@
                         <option value="General">General Physician</option>
                     </select>
                 </div>
+                <p id="doctorResultCount" role="status" aria-live="polite">Loading doctors…</p>
                 <div id="content"></div>
             </main>
             <div id="footer"></div>

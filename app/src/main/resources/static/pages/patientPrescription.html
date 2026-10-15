@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Your Prescription</title>
+  <link rel="stylesheet" href="../assets/css/adminDashboard.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/patientPrescription.css">
+  <script src="../js/util.js" defer></script>
+  <script src="../js/components/header.js" defer></script>
+  <script src="../js/components/footer.js" defer></script>
+  <script type="module" src="../js/patientPrescription.js"></script>
+</head>
+<body>
+  <div class="wrapper">
+    <div id="header"></div>
+    <main class="main-content">
+      <section class="prescription-details">
+        <h1>Your Prescription</h1>
+        <p id="prescriptionStatus" role="status">Loading prescription…</p>
+        <dl id="prescriptionDetails" hidden>
+          <dt>Patient</dt><dd id="patientName"></dd>
+          <dt>Medication</dt><dd id="medication"></dd>
+          <dt>Dosage instructions</dt><dd id="dosage"></dd>
+          <dt>Doctor’s notes</dt><dd id="doctorNotes"></dd>
+        </dl>
+        <a href="/pages/patientAppointments.html">Back to My Appointments</a>
+      </section>
+    </main>
+    <div id="footer"></div>
+  </div>
+</body>
+</html>
