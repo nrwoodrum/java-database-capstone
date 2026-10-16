@@ -13,7 +13,7 @@ This application is designed for a healthcare workflow where:
 ## Tech Stack
 
 - Java 17
-- Spring Boot 3.4
+- Spring Boot 3.5
 - Maven
 - MySQL 8
 - MongoDB 8
@@ -56,13 +56,14 @@ Create a `.env` file in the project root **before starting Docker**. Docker Comp
 cp .env.example .env
 ```
 
-Fill in these required keys with nonempty local passwords:
+Fill in these required keys with nonempty local passwords and a random signing key:
 
 ```dotenv
 MONGO_INITDB_ROOT_PASSWORD=replace-with-your-mongo-root-password
 MONGO_APP_PASSWORD=replace-with-your-mongo-app-password
 MYSQL_ROOT_PASSWORD=replace-with-your-mysql-root-password
 MYSQL_PASSWORD=replace-with-your-mysql-app-password
+JWT_SECRET=replace-with-a-long-random-signing-key
 ```
 
 These keys are optional; Compose uses the following defaults when omitted:
@@ -74,6 +75,8 @@ MONGO_APP_DATABASE=prescriptions
 MYSQL_DATABASE=cms
 MYSQL_USER=clinicdb
 ```
+
+Generate the signing key with `openssl rand -base64 48` and paste the result into `JWT_SECRET`. It has no default: startup fails if it is missing. Never commit the generated value. Changing it invalidates existing login tokens; sign in again after rotation.
 
 Keep `.env` local; it is ignored by Git. The committed `.env.example` contains no passwords. Database initialization runs only when Docker creates a new database volume; changing `.env` does not change credentials in existing databases.
 
@@ -98,6 +101,21 @@ cd app
 By default, the app runs on:
 
 - `http://localhost:8080`
+
+## Demo walkthrough
+
+After starting the app, open `http://localhost:8080`:
+
+1. Select **Patient**, then **Create New User** to register and sign in. Alternatively, use the local demo patient **Jane Doe**: `jane.doe@example.com` / `passJane1`.
+2. Pick a doctor, click **Book Now**, select a future date and available time, and confirm the booking.
+3. Open **Appointments** in the header and select **All Appointments** or **Upcoming Appointments** to confirm the booking appears.
+4. Once the doctor adds a prescription, open **Past Appointments → View Prescription** to read the instructions.
+
+For the admin dashboard, select **Admin** and sign in with the local demo account `admin` / `admin@1234` to manage doctors.
+
+For the doctor dashboard, select **Doctor** and sign in as **Dr. Adams** with `dr.adams@example.com` / `pass12345`; select the appointment date to add or view prescriptions.
+
+These are **local demo credentials**, not passwords to reuse elsewhere. Flyway's `V2__seed_data.sql` loads them when that migration first runs (normally against a new MySQL volume). Existing database accounts may have been changed. The seed migration intentionally uses plaintext passwords for the demo and is kept unchanged to preserve Flyway checksums. A real deployment must store BCrypt hashes through Spring Security's `PasswordEncoder` and verify with `matches()`, never raw-string `equals()`.
 
 ## Database Setup
 

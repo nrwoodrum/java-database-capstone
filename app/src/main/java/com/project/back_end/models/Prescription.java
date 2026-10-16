@@ -10,42 +10,28 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "prescriptions")
 public class Prescription {
 
-    // 1. Unique identifier for the prescription.
-    // MongoDB uses this field as the document's primary key.
     @Id private String id;
 
-    // 2. Name of the patient receiving the prescription.
-    // Required and must contain between 3 and 100 characters.
     @NotBlank(message = "Patient name cannot be blank")
     @Size(min = 3, max = 100, message = "Patient name must be between 3 and 100 characters")
     private String patientName;
 
-    // 3. ID of the appointment associated with the prescription.
-    // Required when creating a prescription.
     @NotNull(message = "Appointment ID cannot be null")
     @Positive(message = "Appointment ID must be positive")
     private Long appointmentId;
 
-    // 4. Medication prescribed to the patient.
-    // Required and must contain between 3 and 100 characters.
     @NotBlank(message = "Medication cannot be blank")
     @Size(min = 3, max = 100, message = "Medication must be between 3 and 100 characters")
     private String medication;
 
-    // 5. Dosage information for the medication.
-    // Required when creating a prescription.
     @NotBlank(message = "Dosage cannot be blank")
     private String dosage;
 
-    // 6. Additional notes or instructions from the doctor.
-    // Cannot exceed 200 characters.
     @Size(max = 200, message = "Doctor notes cannot exceed 200 characters")
     private String doctorNotes;
 
-    // 7. No-argument constructor.
     public Prescription() {}
 
-    // Parameterized constructor.
     public Prescription(
             String patientName,
             String medication,
@@ -58,8 +44,6 @@ public class Prescription {
         this.doctorNotes = doctorNotes;
         this.appointmentId = appointmentId;
     }
-
-    // 8. Getters and setters.
 
     public String getId() {
         return id;

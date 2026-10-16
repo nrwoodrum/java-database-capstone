@@ -1,7 +1,7 @@
 package com.project.back_end.controllers;
 
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.project.back_end.services.AdminService;
@@ -29,7 +29,7 @@ class AppointmentControllerTest {
                         .build();
         when(auth.validateToken("token", "patient")).thenReturn(true);
         when(auth.validateAppointment(any())).thenReturn(1);
-        when(service.bookAppointment(any())).thenReturn(1);
+        when(service.bookAppointment(any(), eq("token"))).thenReturn(1);
     }
 
     private String body(LocalDateTime time) {
@@ -73,7 +73,7 @@ class AppointmentControllerTest {
 
     @Test
     void handlesPersistenceFailureAfterServiceTransactionEnds() throws Exception {
-        when(service.bookAppointment(any()))
+        when(service.bookAppointment(any(), eq("token")))
                 .thenThrow(new DataIntegrityViolationException("private database detail"));
         mvc.perform(
                         post("/appointments/token")
@@ -86,5 +86,24 @@ class AppointmentControllerTest {
                                         org.hamcrest.Matchers.not(
                                                 org.hamcrest.Matchers.containsString(
                                                         "private database detail"))));
+    }
+
+    @Test
+    void updateAndCancelForwardTheAuthenticatedToken() throws Exception {
+        when(service.updateAppointment(eq(7L), any(), eq("token")))
+                .thenReturn("Appointment updated successfully");
+        when(service.cancelAppointment(7L, "token"))
+                .thenReturn("Appointment canceled successfully");
+        mvc.perform(
+                        put("/appointments/7/token")
+                                .contentType("application/json")
+                                .content(body(LocalDateTime.now().plusDays(1))))
+                .andExpect(status().isOk());
+        mvc.perform(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete(
+                                "/appointments/cancel/token/7"))
+                .andExpect(status().isOk());
+        verify(service).updateAppointment(eq(7L), any(), eq("token"));
+        verify(service).cancelAppointment(7L, "token");
     }
 }

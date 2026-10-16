@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class AppointmentBookingIT {
     @Autowired AppointmentService service;
+    @Autowired TokenService tokens;
     @Autowired DoctorRepository doctors;
     @Autowired PatientRepository patients;
     @Autowired AppointmentRepository appointments;
@@ -42,7 +43,12 @@ class AppointmentBookingIT {
         Patient patient = new Patient();
         patient.setId(savedPatient.getId());
         Appointment booking = new Appointment(doctor, patient, LocalDateTime.now().plusYears(1), 0);
-        assertEquals(1, service.bookAppointment(booking));
+        assertEquals(
+                1,
+                service.bookAppointment(
+                        booking,
+                        tokens.generateToken(
+                                savedPatient.getId(), "patient", savedPatient.getEmail())));
         assertNotNull(booking.getId());
         assertTrue(appointments.findById(booking.getId()).isPresent());
         assertEquals(savedPatient.getName(), booking.getPatient().getName());
