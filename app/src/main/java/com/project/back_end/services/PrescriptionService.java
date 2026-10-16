@@ -1,34 +1,139 @@
 package com.project.back_end.services;
 
+import com.project.back_end.models.Appointment;
+import com.project.back_end.models.Prescription;
+import com.project.back_end.repo.AppointmentRepository;
+import com.project.back_end.repo.PrescriptionRepository;
+import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+
+@Service
 public class PrescriptionService {
-    
- // 1. **Add @Service Annotation**:
-//    - The `@Service` annotation marks this class as a Spring service component, allowing Spring's container to manage it.
-//    - This class contains the business logic related to managing prescriptions in the healthcare system.
-//    - Instruction: Ensure the `@Service` annotation is applied to mark this class as a Spring-managed service.
+    private static final Logger log = LoggerFactory.getLogger(PrescriptionService.class);
+    private final PrescriptionRepository prescriptions;
+    private final AppointmentRepository appointments;
+    private final TokenService tokens;
+    private final AppointmentService appointmentService;
 
-// 2. **Constructor Injection for Dependencies**:
-//    - The `PrescriptionService` class depends on the `PrescriptionRepository` to interact with the database.
-//    - It is injected through the constructor, ensuring proper dependency management and enabling testing.
-//    - Instruction: Constructor injection is a good practice, ensuring that all necessary dependencies are available at the time of service initialization.
+    public PrescriptionService(
+            PrescriptionRepository prescriptions,
+            AppointmentRepository appointments,
+            TokenService tokens,
+            AppointmentService appointmentService) {
+        this.prescriptions = prescriptions;
+        this.appointments = appointments;
+        this.tokens = tokens;
+        this.appointmentService = appointmentService;
+    }
 
-// 3. **savePrescription Method**:
-//    - This method saves a new prescription to the database.
-//    - Before saving, it checks if a prescription already exists for the same appointment (using the appointment ID).
-//    - If a prescription exists, it returns a `400 Bad Request` with a message stating the prescription already exists.
-//    - If no prescription exists, it saves the new prescription and returns a `201 Created` status with a success message.
-//    - Instruction: Handle errors by providing appropriate status codes and messages, ensuring that multiple prescriptions for the same appointment are not saved.
+    private Appointment authorizedAppointment(Long id, String token) {
+        Appointment appointment = appointments.findById(id).orElse(null);
+        if (appointment == null) return null;
+        if (appointment.getDoctor() == null
+                || !tokens.extractEmail(token).equals(appointment.getDoctor().getEmail())) {
+            throw new SecurityException("Appointment belongs to another doctor");
+        }
+        return appointment;
+    }
 
-// 4. **getPrescription Method**:
-//    - Retrieves a prescription associated with a specific appointment based on the `appointmentId`.
-//    - If a prescription is found, it returns it within a map wrapped in a `200 OK` status.
-//    - If there is an error while fetching the prescription, it logs the error and returns a `500 Internal Server Error` status with an error message.
-//    - Instruction: Ensure that this method handles edge cases, such as no prescriptions found for the given appointment, by returning meaningful responses.
+    public ResponseEntity<Map<String, String>> savePrescription(
+            Prescription prescription, String token) {
+        boolean inserted = false;
+        try {
+            Appointment appointment = authorizedAppointment(prescription.getAppointmentId(), token);
+            if (appointment == null)
+                return ResponseEntity.status(404).body(Map.of("message", "Appointment not found"));
+            if (!prescriptions.findByAppointmentId(appointment.getId()).isEmpty()) {
+                return ResponseEntity.status(409)
+                        .body(
+                                Map.of(
+                                        "message",
+                                        "Prescription already exists for this appointment"));
+            }
+            if (appointment.getStatus() != 0) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("message", "Appointment is already completed"));
+            }
+            // Mongo's unique _id makes simultaneous creates conflict without a new index migration.
+            // Never accept a caller's document ID or patient name for a new prescription.
+            prescription.setId("appointment-" + appointment.getId());
+            prescription.setPatientName(appointment.getPatient().getName());
+            try {
+                prescriptions.insert(prescription);
+            } catch (DuplicateKeyException e) {
+                return ResponseEntity.status(409)
+                        .body(
+                                Map.of(
+                                        "message",
+                                        "Prescription already exists for this appointment"));
+            }
+            inserted = true;
+            String statusResult = appointmentService.changeStatus(appointment.getId(), 1);
+            if (!"Appointment status updated successfully".equals(statusResult)) {
+                throw new IllegalStateException(statusResult);
+            }
+            return ResponseEntity.status(201)
+                    .body(Map.of("message", "Prescription saved successfully"));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403)
+                    .body(Map.of("message", "You cannot access another doctor's appointment"));
+        } catch (Exception e) {
+            // MongoDB and MySQL do not share a transaction. Undo our insert if completion fails.
+            if (inserted) {
+                try {
+                    prescriptions.deleteById(prescription.getId());
+                } catch (Exception cleanupError) {
+                    log.error("Unable to undo prescription insert", cleanupError);
+                }
+            }
+            log.error("Error saving prescription", e);
+            return ResponseEntity.status(500)
+                    .body(Map.of("message", "Unable to save prescription. Please try again."));
+        }
+    }
 
-// 5. **Exception Handling and Error Responses**:
-//    - Both methods (`savePrescription` and `getPrescription`) contain try-catch blocks to handle exceptions that may occur during database interaction.
-//    - If an error occurs, the method logs the error and returns an HTTP `500 Internal Server Error` response with a corresponding error message.
-//    - Instruction: Ensure that all potential exceptions are handled properly, and meaningful responses are returned to the client.
+    public ResponseEntity<Map<String, Object>> getPrescription(Long appointmentId, String token) {
+        try {
+            if (authorizedAppointment(appointmentId, token) == null) {
+                return ResponseEntity.status(404).body(Map.of("message", "Appointment not found"));
+            }
+            return ResponseEntity.ok(
+                    Map.of("prescriptions", prescriptions.findByAppointmentId(appointmentId)));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403)
+                    .body(Map.of("message", "You cannot access another doctor's appointment"));
+        } catch (Exception e) {
+            log.error("Error fetching prescription", e);
+            return ResponseEntity.status(500)
+                    .body(Map.of("message", "Unable to fetch prescription. Please try again."));
+        }
+    }
 
-
+    public ResponseEntity<Map<String, Object>> getPatientPrescription(
+            Long appointmentId, String token) {
+        try {
+            Appointment appointment = appointments.findById(appointmentId).orElse(null);
+            if (appointment == null) {
+                return ResponseEntity.status(404).body(Map.of("message", "Appointment not found"));
+            }
+            if (appointment.getPatient() == null
+                    || !tokens.extractEmail(token).equals(appointment.getPatient().getEmail())) {
+                return ResponseEntity.status(403)
+                        .body(
+                                Map.of(
+                                        "message",
+                                        "You cannot access another patient's prescription"));
+            }
+            return ResponseEntity.ok(
+                    Map.of("prescriptions", prescriptions.findByAppointmentId(appointmentId)));
+        } catch (Exception e) {
+            log.error("Error fetching patient prescription", e);
+            return ResponseEntity.status(500)
+                    .body(Map.of("message", "Unable to fetch prescription. Please try again."));
+        }
+    }
 }

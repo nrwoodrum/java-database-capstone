@@ -43,6 +43,7 @@ export function openModal(type) {
         <input type="text" id="email" placeholder="Email" class="input-field">
         <input type="password" id="password" placeholder="Password" class="input-field">
         <button class="dashboard-btn" id="loginBtn">Login</button>
+        <button class="dashboard-btn secondary-btn" id="openPatientSignupBtn" type="button">Create New User</button>
       `;
   }
   else if (type === "patientSignup") {
@@ -54,6 +55,7 @@ export function openModal(type) {
       <input type="text" id="phone" placeholder="Phone" class="input-field">
       <input type="text" id="address" placeholder="Address" class="input-field">
       <button class="dashboard-btn" id="signupBtn">Signup</button>
+      <button class="dashboard-btn secondary-btn" id="openPatientLoginBtn" type="button">Already have an account?</button>
     `;
 
   } else if (type === 'adminLogin') {
@@ -81,10 +83,20 @@ export function openModal(type) {
 
   if (type === "patientSignup") {
     document.getElementById("signupBtn").addEventListener("click", signupPatient);
+
+    const openLoginBtn = document.getElementById("openPatientLoginBtn");
+    if (openLoginBtn) {
+      openLoginBtn.addEventListener("click", () => openModal('patientLogin'));
+    }
   }
 
   if (type === "patientLogin") {
     document.getElementById("loginBtn").addEventListener("click", loginPatient);
+
+    const openSignupBtn = document.getElementById("openPatientSignupBtn");
+    if (openSignupBtn) {
+      openSignupBtn.addEventListener("click", () => openModal('patientSignup'));
+    }
   }
 
   if (type === 'addDoctor') {

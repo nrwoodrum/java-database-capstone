@@ -4,6 +4,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/svg+xml" href="../assets/images/logo/logo.png" />
     <title>PatientDashboard</title>
     <link rel="stylesheet" href="../assets/css/adminDashboard.css">
@@ -14,14 +15,15 @@
     <script src="../js/components/header.js" defer></script>
     <script src="../js/components/footer.js" defer></script>
     <script type="module" src="../js/components/modals.js"></script>
+    <link rel="stylesheet" href="../assets/css/doctorDirectory.css">
 </head>
 
 <body onload="renderContent()">
     <div class="container">
         <div class="wrapper">
             <div id="header"></div>
-            <main class="main-content">
-                <input type="text" id="searchBar" class="searchBar" placeholder="Search Bar for custom output" />
+            <main class="main-content doctor-directory">
+                <input type="text" id="searchBar" class="searchBar" placeholder="Search Bar" aria-label="Search Bar" />
                 <div class="filter-wrapper">
                     <select class="filter-select" id="filterTime">
                         <option value="">Sort by Time</option>
@@ -58,6 +60,6 @@
         </div>
     </div>
     <script type="module" src="../js/patientDashboard.js" defer></script>
-</body>
+    </body>
 
 </html>

@@ -1,0 +1,16 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Spring Boot: Debug App",
+      "type": "java",
+      "request": "launch",
+      "mainClass": "com.project.back_end.BackEndApplication",
+      "projectName": "back-end",
+      "cwd": "${workspaceFolder}/app",
+      "console": "integratedTerminal",
+      "envFile": "${workspaceFolder}/.env",
+      "preLaunchTask": "docker: up"
+    }
+  ]
+}

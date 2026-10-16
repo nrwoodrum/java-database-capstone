@@ -1,3 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+    <title>Admin Dashboard</title>
+
+
+    <link rel="icon" type="image/png" th:href="@{/assets/images/logo/logo.png}">
+
+
+    <link rel="stylesheet" type="text/css" th:href="@{/assets/css/style.css}">
+
+
+    <link rel="stylesheet" type="text/css" th:href="@{/assets/css/adminDashboard.css}">
+
+
+
+    <script defer th:src="@{/js/components/header.js}"></script>
+    <script defer th:src="@{/js/components/footer.js}"></script>
+    <script defer th:src="@{/js/util.js}"></script>
+    <script defer th:src="@{/js/render.js}"></script>
+    <link rel="stylesheet" th:href="@{/assets/css/doctorDirectory.css}">
+</head>
+
+<body>
+    <div class="container">
+        <div class="wrapper">
+            <div id="header"></div>
+
+            <main class="main-content doctor-directory">
+                <input type="text" id="searchBar" class="searchBar" placeholder="Search Bar" aria-label="Search Bar" />
+
+                <div class="filter-wrapper">
+                    <select id="timeFilter" class="filter-select">
+                        <option value="">Select Time</option>
+                        <option value="AM">AM</option>
+                        <option value="PM">PM</option>
+                    </select>
+
+                    <select id="specialtyFilter" class="filter-select">
+                        <option value="">Select Specialty</option>
+                        <option value="cardiologist">Cardiologist</option>
+                        <option value="dermatologist">Dermatologist</option>
+                        <option value="neurologist">Neurologist</option>
+                        <option value="pediatrician">Pediatrician</option>
+                        <option value="orthopedic">Orthopedic</option>
+                        <option value="gynecologist">Gynecologist</option>
+                        <option value="psychiatrist">Psychiatrist</option>
+                        <option value="dentist">Dentist</option>
+                        <option value="ophthalmologist">Ophthalmologist</option>
+                        <option value="ent">ENT Specialist</option>
+                        <option value="urologist">Urologist</option>
+                        <option value="oncologist">Oncologist</option>
+                        <option value="gastroenterologist">Gastroenterologist</option>
+                        <option value="general">General Physician</option>
+                    </select>
+                </div>
+
+                <div id="summaryCards" class="summary-cards" aria-live="polite"></div>
+                <div id="content"></div>
+            </main>
+
+            <div id="footer"></div>
+        </div>
+    </div>
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span id="closeModal" class="close">&times;</span>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <script type="module" th:src="@{/js/adminDashboard.js}" defer></script>
+</body>
+</html>
+
+                
+
+
 <!-- adminDashboard.html -->
 
 <!-- 
@@ -63,7 +146,7 @@ with search, filter, and modal functionality.
 
 13. Define the Main Section
 
-    * Use `<main class="main-content">` for the central dashboard area.
+    * Use `<main class="main-content doctor-directory">` for the central dashboard area.
 
 14. Add a Search Bar
 

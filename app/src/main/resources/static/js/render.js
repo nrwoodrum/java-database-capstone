@@ -1,28 +1,57 @@
 // render.js
-
 function selectRole(role) {
-  setRole(role);
   const token = localStorage.getItem('token');
+  const currentRole = localStorage.getItem('userRole');
+
   if (role === "admin") {
-    if (token) {
+    if (token && currentRole === 'admin') {
       window.location.href = `/adminDashboard/${token}`;
+    } else if (token && currentRole && currentRole !== 'admin') {
+      clearSessionAndRedirect('You are logged in under a different role. Please sign in again.', '/');
+    } else {
+      window.openModal('adminLogin');
     }
-  } if (role === "patient") {
-    window.location.href = "/pages/patientDashboard.html";
-  } else if (role === "doctor") {
-    if (token) {
-      window.location.href = `/doctorDashboard/${token}`;
-    } else if (role === "loggedPatient") {
-      window.location.href = "loggedPatientDashboard.html";
-    }
+    return;
   }
-}
 
+  if (role === "doctor") {
+    if (token && currentRole === 'doctor') {
+      window.location.href = `/doctorDashboard/${token}`;
+    } else if (token && currentRole && currentRole !== 'doctor') {
+      clearSessionAndRedirect('You are logged in under a different role. Please sign in again.', '/');
+    } else {
+      window.openModal('doctorLogin');
+    }
+    return;
+  }
 
-function renderContent() {
-  const role = getRole();
-  if (!role) {
-    window.location.href = "/"; // if no role, send to role selection page
+  if (role === "patient") {
+    if (token && currentRole === 'loggedPatient') {
+      window.location.href = "/pages/loggedPatientDashboard.html";
+    } else if (token && currentRole && currentRole !== 'loggedPatient') {
+      clearSessionAndRedirect('You are logged in under a different role. Please sign in again.', '/');
+    } else {
+      window.openModal('patientLogin');
+    }
+    return;
+  }
+
+  if (role === "loggedPatient") {
+    if (token && currentRole === 'loggedPatient') {
+      window.location.href = "/pages/loggedPatientDashboard.html";
+    } else {
+      clearSessionAndRedirect('Your patient session is invalid. Please sign in again.', '/');
+    }
     return;
   }
 }
+
+window.renderContent = function renderContent() {
+  if (typeof renderHeader === 'function') {
+    renderHeader();
+  }
+
+  if (typeof renderFooter === 'function') {
+    renderFooter();
+  }
+};

@@ -1,0 +1,12 @@
+.prescription-details {
+  width: min(100%, 600px);
+  background: #fff;
+  color: #123a3b;
+  padding: 30px;
+  border-radius: 12px;
+  text-align: left;
+}
+.prescription-details h1 { margin-bottom: 24px; }
+.prescription-details dt { font-weight: bold; margin-top: 18px; }
+.prescription-details dd { margin: 8px 0 20px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.prescription-details a { display: inline-block; margin-top: 20px; color: #015c5d; }

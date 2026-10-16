@@ -1,0 +1,33 @@
+/* Shared layout for patient and admin doctor directories. */
+  .doctor-directory {
+    justify-content: flex-start;
+    gap: 16px;
+    padding: 32px clamp(16px, 4vw, 48px);
+  }
+
+  .doctor-directory #content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 360px));
+    justify-content: center;
+    align-items: stretch;
+    gap: 24px;
+    width: min(100%, 1200px);
+    margin: 0 auto;
+    padding: 8px 0 24px;
+  }
+
+  .doctor-directory .doctor-card {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .doctor-directory .doctor-info {
+    flex: 1;
+    overflow-wrap: anywhere;
+  }
+
+  .doctor-directory .book-btn,
+  .doctor-directory .delete-btn {
+    margin: 0;
+  }
+

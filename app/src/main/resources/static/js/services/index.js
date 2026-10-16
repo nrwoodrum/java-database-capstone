@@ -1,3 +1,166 @@
+import { openModal } from '../components/modals.js';
+import { API_BASE_URL } from '../config/config.js';
+import { patientLogin, patientSignup } from './patientServices.js';
+
+const ADMIN_API = `${API_BASE_URL}/admin/login`;
+const DOCTOR_API = `${API_BASE_URL}/doctor/login`;
+const PATIENT_API = `${API_BASE_URL}/patient/login`;
+
+window.openModal = openModal;
+
+window.onload = () => {
+  const adminBtn = document.getElementById('adminBtn');
+  const doctorBtn = document.getElementById('doctorBtn');
+  const patientBtn = document.getElementById('patientBtn');
+
+  if (adminBtn) {
+    adminBtn.addEventListener('click', () => openModal('adminLogin'));
+  }
+
+  if (doctorBtn) {
+    doctorBtn.addEventListener('click', () => openModal('doctorLogin'));
+  }
+
+  if (patientBtn) {
+    patientBtn.addEventListener('click', () => openModal('patientLogin'));
+  }
+};
+
+window.adminLoginHandler = async function() {
+  const username = document.getElementById('username')?.value.trim();
+  const password = document.getElementById('password')?.value.trim();
+
+  if (!username || !password) {
+    alert('Please enter both username and password.');
+    return;
+  }
+
+  const admin = { username, password };
+
+  try {
+    const response = await fetch(ADMIN_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(admin)
+    });
+
+    const payload = await response.json().catch(() => ({}));
+
+    if (response.ok) {
+      const data = payload || {};
+      localStorage.setItem('userRole', 'admin');
+      localStorage.setItem('token', data.token);
+      selectRole('admin');
+    } else {
+      alert(payload.error || 'Invalid admin credentials. Please try again.');
+    }
+  } catch (error) {
+    console.error('Error during admin login:', error);
+    alert('An error occurred during login. Please try again later.');
+  }
+};
+
+window.doctorLoginHandler = async function() {
+  const email = document.getElementById('email')?.value.trim();
+  const password = document.getElementById('password')?.value.trim();
+
+  if (!email || !password) {
+    alert('Please enter both email and password.');
+    return;
+  }
+
+  const doctor = { email, password };
+
+  try {
+    const response = await fetch(DOCTOR_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(doctor)
+    });
+
+    const payload = await response.json().catch(() => ({}));
+
+    if (response.ok) {
+      localStorage.setItem('userRole', 'doctor');
+      localStorage.setItem('token', payload.token);
+      selectRole('doctor');
+    } else {
+      alert(payload.error || 'Invalid doctor credentials. Please try again.');
+    }
+  } catch (error) {
+    console.error('Error during doctor login:', error);
+    alert('An error occurred during login. Please try again later.');
+  }
+};
+
+window.patientLoginHandler = async function() {
+  const email = document.getElementById('email')?.value.trim();
+  const password = document.getElementById('password')?.value.trim();
+
+  if (!email || !password) {
+    alert('Please enter both email and password.');
+    return;
+  }
+
+  try {
+    const response = await patientLogin({ email, password });
+    const payload = await response.json().catch(() => ({}));
+
+    if (response.ok) {
+      localStorage.setItem('userRole', 'loggedPatient');
+      localStorage.setItem('token', payload.token);
+      window.location.href = '/pages/loggedPatientDashboard.html';
+    } else {
+      alert(payload.error || '❌ Patient not found or invalid password.');
+    }
+  } catch (error) {
+    console.error('Error during patient login:', error);
+    alert('❌ Failed to login as patient.');
+  }
+};
+
+window.signupPatient = async function() {
+  const name = document.getElementById('name')?.value.trim();
+  const email = document.getElementById('email')?.value.trim();
+  const password = document.getElementById('password')?.value.trim();
+  const phone = document.getElementById('phone')?.value.trim();
+  const address = document.getElementById('address')?.value.trim();
+
+  if (!name || !email || !password || !phone || !address) {
+    alert('Please complete all patient fields before creating an account.');
+    return;
+  }
+
+  try {
+    const result = await patientSignup({ name, email, password, phone, address });
+    if (result.success) {
+      alert(result.message || 'Signup successful');
+      document.getElementById('modal').style.display = 'none';
+      openModal('patientLogin');
+    } else {
+      alert(result.message || 'Signup failed. Please try again.');
+    }
+  } catch (error) {
+    console.error('Error during patient signup:', error);
+    alert('❌ Failed to create patient account.');
+  }
+};
+
+window.loginPatient = window.patientLoginHandler;
+
+/*
+  Import the openModal function to handle showing login popups/modals
+  Import the base API URL from the config file
+  Define constants for the admin and doctor login API endpoints using the base URL
+
+  Use the window.onload event to ensure DOM elements are available after page load
+  Inside this function:
+    - Select the "adminLogin" and "doctorLogin" buttons using getElementById
+    - If the admin login button exists:
+        - Add a click event listener that calls openModal('adminLogin') to show the admin login modal
+    - If the doctor login button exists:
+        - Add a click event listener that calls openModal('doctorLogin') to show the doctor login modal
+
 /*
   Import the openModal function to handle showing login popups/modals
   Import the base API URL from the config file

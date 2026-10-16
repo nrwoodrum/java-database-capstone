@@ -1,3 +1,193 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; font-family: Arial, sans-serif; }
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+h2 {
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 50px;
+  color: #003e3e;
+  text-align: center;
+}
+
+.searchBar,
+.filter-select,
+#timeFilter,
+#specialtyFilter,
+#appointmentFilter {
+  display: block;
+  width: min(100%, 420px);
+  min-height: 48px;
+  padding: 12px 14px;
+  font-size: 1rem;
+  border-radius: 10px;
+  border: 1px solid #cfe0e3;
+  background: #ffffff;
+  color: #123a3b;
+  box-sizing: border-box;
+}
+
+.filter-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 860px;
+  margin: 10px auto 0;
+}
+
+#timeFilter,
+#specialtyFilter,
+#appointmentFilter {
+  flex: 1 1 180px;
+  min-width: 180px;
+}
+
+.main-content {
+  flex-grow: 1;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+
+  background-image: url("../images/defineRole/index.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+button {
+  background-color: #A62B1F;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 20px;
+  margin-top: 20px;
+  width: 200px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.2s ease-in-out;
+}
+
+button:hover {
+  background-color: #A62B1F; /* Retains the same red color on hover */
+}
+
+.adminBtn {
+  background-color: #f4f4f4;
+  color: #333;
+  font-weight: bold;
+  width: 110px;
+  padding: 10px 0;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s ease-in-out;
+}
+
+.adminBtn:hover {
+  color: #A62B1F;
+}
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 16px;
+  width: min(100%, 980px);
+  margin: 8px auto 18px;
+}
+
+.summary-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 18px 20px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(19, 58, 59, 0.12);
+  border-radius: 14px;
+  box-shadow: 0 8px 18px rgba(1, 32, 33, 0.08);
+}
+
+.summary-card span {
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #517275;
+}
+
+.summary-card strong {
+  font-size: 2rem;
+  line-height: 1.1;
+  color: #0f3b3b;
+}
+
+.empty-state {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 72px;
+  padding: 20px;
+  margin: 12px auto 0;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px dashed rgba(19, 58, 59, 0.22);
+  color: #335b5c;
+  font-weight: 600;
+  text-align: center;
+}
+
+.doctor-card-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  justify-content: center;
+  width: 100%;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  width: 400px;
+  max-width: 90%;
+  text-align: center;
+}
+
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.modal-close:hover {
+  color: #A62B1F;
+}
+
 /*this is the style sheet for the adminDashboard. */
 
 /* 

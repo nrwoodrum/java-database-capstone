@@ -6,24 +6,31 @@ const PATIENT_API = API_BASE_URL + '/patient'
 //For creating a patient in db
 export async function patientSignup(data) {
   try {
-    const response = await fetch(`${PATIENT_API}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-type": "application/json"
-        },
-        body: JSON.stringify(data)
-      }
-    );
-    const result = await response.json();
-    if (!response.ok) {
-      throw new Error(result.message);
+    const response = await fetch(`${PATIENT_API}`, {
+      method: "POST",
+      headers: {
+        "Content-type": "application/json"
+      },
+      body: JSON.stringify(data)
+    });
+
+    const rawText = await response.text();
+    let result = {};
+
+    try {
+      result = rawText ? JSON.parse(rawText) : {};
+    } catch {
+      result = { message: rawText || "Signup successful" };
     }
-    return { success: response.ok, message: result.message }
-  }
-  catch (error) {
-    console.error("Error :: patientSignup :: ", error)
-    return { success: false, message: error.message }
+
+    if (!response.ok) {
+      throw new Error(result.message || result.error || "Signup failed");
+    }
+
+    return { success: true, message: result.message || rawText || "Signup successful" };
+  } catch (error) {
+    console.error("Error :: patientSignup :: ", error);
+    return { success: false, message: error.message || "Signup failed" };
   }
 }
 
@@ -57,7 +64,7 @@ export async function getPatientData(token) {
 // the Backend API for fetching the patient record(visible in Doctor Dashboard) and Appointments (visible in Patient Dashboard) are same based on user(patient/doctor).
 export async function getPatientAppointments(id, token, user) {
   try {
-    const response = await fetch(`${PATIENT_API}/${id}/${user}/${token}`);
+    const response = await fetch(`${PATIENT_API}/appointments/${id}/${token}/${user}`);
     const data = await response.json();
     console.log(data.appointments)
     if (response.ok) {
